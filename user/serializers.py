@@ -9,7 +9,6 @@ class SoftdeskUserSerializer(serializers.HyperlinkedModelSerializer):
         fields = [
             'url',
             'username',
-            'password',
             'age',
             'can_be_contacted',
             'can_data_be_shared'
