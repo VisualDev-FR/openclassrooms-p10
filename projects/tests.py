@@ -22,8 +22,8 @@ class TestProject(APITestCase):
         self.client.force_login(self.admin)
         self.client.post("/projects/", data={
             "description": "existing_project",
-            "Type": "FRONT",
-            "author": 1
+            "type": "FRONT",
+            "author": self.admin.pk
         })
 
     def test_create_project(self):
@@ -35,7 +35,7 @@ class TestProject(APITestCase):
         response = self.client.post("/projects/", data={
             "description": "new_project",
             "type": "FRONT",
-            "author": self.end_user.id
+            "author": self.end_user.pk
         })
 
         # check the status code of the response
@@ -52,9 +52,6 @@ class TestProject(APITestCase):
         # retreive the created project from the api endpoint
         response = self.client.get("/projects/?description=new_project")
 
-        import json
-        print(json.dumps(response.json(), indent=4))
-
         self.assertIn(response.status_code, [200, 201], response.json())
         self.assertEqual(response.json()['count'], 1)
 
@@ -63,7 +60,7 @@ class TestProject(APITestCase):
         # create new project without specifiying author
         response = self.client.post("/projects/", data={
             "description": "Dummy description",
-            "Type": "FRONT",
+            "type": "FRONT",
         })
 
         # assert that the request was rejected
@@ -75,17 +72,26 @@ class TestProject(APITestCase):
 
     def test_update_project(self):
 
-        response = self.client.patch("/projects/", data={
-            "description": "existing_project",
-            "Type": "BACK",
-            "author": 1
+        response = self.client.patch("/projects/1/", data={
+            "type": "BACK",
         })
 
-        self.assertIn(response.status_code, [200, 201], response.json())
+        self.assertIn(response.status_code, [200, 201])
 
         project = Project.objects.get(description="existing_project")
 
         self.assertEqual(project.type, "BACK")
+
+    def test_update_project_from_non_author(self):
+
+        self.client.logout()
+        self.client.force_login(self.end_user)
+
+        response = self.client.patch("/projects/1/", data={
+            "type": "BACK",
+        })
+
+        self.assertEqual(response.status_code, 403)
 
     # TODO: test_delete_project
     def test_delete_project(self):
