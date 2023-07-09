@@ -17,14 +17,16 @@ Including another URLconf
 from django.urls import include, path
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from user import views as user_views
-from projects import views as project_views
+from user.views import UserViewSet
+from projects.views import ProjectViewSet, ContributorViewSet
+from issues.views import IssueViewSet
 
 
 router = routers.DefaultRouter()
-router.register(r'users', user_views.UserViewSet)
-router.register(r'projects', project_views.ProjectViewSet)
-router.register(r'contributors', project_views.ContributorViewSet)
+router.register(r'users', UserViewSet)
+router.register(r'projects', ProjectViewSet)
+router.register(r'contributors', ContributorViewSet)
+router.register(r'issues', IssueViewSet)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
