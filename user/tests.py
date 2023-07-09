@@ -57,3 +57,6 @@ class TestSoftdeskUser(APITestCase):
 
         self.assertEqual(response.status_code, 400, response.json())
         self.assertFalse(SoftdeskUser.objects.filter(username="new_user").exists())
+
+    # TODO: test UPDATE TestSoftdeskUser
+    # TODO: test DELETE TestSoftdeskUser

@@ -2,7 +2,7 @@ from user.models import SoftdeskUser
 from rest_framework import serializers
 
 
-class SoftdeskUserSerializer(serializers.HyperlinkedModelSerializer):
+class SoftdeskUserSerializer(serializers.ModelSerializer):
 
     def validate_age(self, value):
         if value < 15:
