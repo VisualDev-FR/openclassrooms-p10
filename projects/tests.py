@@ -1,6 +1,6 @@
 from rest_framework.test import APITestCase
 from user.models import SoftdeskUser
-from projects.models import Project
+from projects.models import Project, Contributor
 
 
 class TestProject(APITestCase):
@@ -72,6 +72,10 @@ class TestProject(APITestCase):
 
         self.assertIn(response.status_code, [200, 201], response.json())
         self.assertEqual(response.json()['count'], 1)
+
+        # assert the author was added to the contributors table
+        contributor = Contributor.objects.filter(project_id=project.pk, user_id=self.end_user.pk)
+        self.assertTrue(contributor.exists())
 
     def test_create_project_without_author(self):
 
@@ -157,3 +161,9 @@ class TestProject(APITestCase):
 
         # assert the delete operation was rejected
         self.assertEqual(response.status_code, 403)
+
+
+class TestContributor(APITestCase):
+
+    def setUp(self) -> None:
+        pass
