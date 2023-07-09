@@ -72,6 +72,7 @@ class TestProject(APITestCase):
         Create a new project, with user created in setUp() as author
         """
 
+        self.client.logout()
         self.client.force_login(self.end_user)
 
         # create new project
@@ -154,7 +155,7 @@ class TestProject(APITestCase):
             "type": "BACK",
         })
 
-        # assert the update operation as rejected
+        # assert the update operation was rejected
         self.assertEqual(response.status_code, 404, response.json())
 
     def test_delete_project(self):
