@@ -28,15 +28,19 @@ class TestProject(APITestCase):
 
     def test_get_project(self):
 
+        # get all projects
         response = self.client.get("/projects/")
 
+        # assert data have been successfully received
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["count"], 1)
 
     def test_get_project_without_credential(self):
 
+        # logout the authenticated user in setUp() method
         self.client.logout()
 
+        # assert that access is denied
         response = self.client.get("/projects/")
         self.assertEqual(response.status_code, 403)
 
@@ -94,25 +98,34 @@ class TestProject(APITestCase):
 
     def test_update_project(self):
 
+        # update the existing project, created in setUp() method
         response = self.client.patch("/projects/1/", data={
             "type": "BACK",
         })
 
+        # assert update was sucessfully applied
         self.assertIn(response.status_code, [200, 201])
 
+        # retreive the project from django ORM
         project = Project.objects.get(description="existing_project")
 
+        # assert the update was sucessfully applied in database
         self.assertEqual(project.type, "BACK")
 
     def test_update_project_from_non_author(self):
 
+        # logout the author of the project 1
         self.client.logout()
+
+        # login a user who is not the author or project 1
         self.client.force_login(self.end_user)
 
+        # try to update project 1 from non author account
         response = self.client.patch("/projects/1/", data={
             "type": "BACK",
         })
 
+        # assert the update operation as rejected
         self.assertEqual(response.status_code, 403)
 
     def test_delete_project(self):
@@ -133,9 +146,14 @@ class TestProject(APITestCase):
 
     def test_delete_project_from_non_author(self):
 
+        # logout the author of project 1
         self.client.logout()
+
+        # login a user who is not the author of project 1
         self.client.force_login(self.end_user)
 
+        # try to delete the project 1 from non author
         response = self.client.delete("/projects/1/")
 
+        # assert the delete operation was rejected
         self.assertEqual(response.status_code, 403)
