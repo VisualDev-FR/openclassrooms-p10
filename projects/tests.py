@@ -67,8 +67,16 @@ class TestProject(APITestCase):
         self.assertIn(response.status_code, [400], response.json())
 
     def test_create_project_with_invalid_type(self):
-        # TODO: test_create_project_with_invalid_type
-        pass
+
+        # create new project with invalid type
+        response = self.client.post("/projects/", data={
+            "description": "new_project",
+            "type": "Invalid type",
+            "author": self.end_user.pk
+        })
+
+        # check the status code of the response
+        self.assertEqual(response.status_code, 400, response.json())
 
     def test_update_project(self):
 
@@ -93,6 +101,13 @@ class TestProject(APITestCase):
 
         self.assertEqual(response.status_code, 403)
 
-    # TODO: test_delete_project
     def test_delete_project(self):
-        pass
+
+        deleted_project = Project.objects.filter(description="existing_project")
+        self.assertTrue(deleted_project.exists())
+
+        response = self.client.delete("/projects/1/")
+        self.assertEqual(response.status_code, 204)
+
+        deleted_project = Project.objects.filter(description="existing_project")
+        self.assertFalse(deleted_project.exists())
