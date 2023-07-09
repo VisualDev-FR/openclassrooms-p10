@@ -26,6 +26,8 @@ class Project(models.Model):
         on_delete=models.CASCADE,
     )
 
+    created_time = models.DateTimeField(auto_now=True)
+
 
 class Contributor(models.Model):
     """
