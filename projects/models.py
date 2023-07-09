@@ -58,5 +58,8 @@ class Contributor(models.Model):
 
     project = models.ForeignKey(
         to=Project,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
+
+    class Meta:
+        unique_together = ('user', 'project')

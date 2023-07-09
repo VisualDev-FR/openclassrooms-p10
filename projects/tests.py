@@ -1,6 +1,11 @@
 from rest_framework.test import APITestCase
 from user.models import SoftdeskUser
 from projects.models import Project, Contributor
+import json
+
+
+def print_as_json(iterble):
+    print(json.dumps(iterble, indent=4))
 
 
 class TestProject(APITestCase):
@@ -44,10 +49,30 @@ class TestProject(APITestCase):
         response = self.client.get("/projects/")
         self.assertEqual(response.status_code, 403)
 
+    def test_get_project_without_being_contributor(self):
+
+        # check if at least one project exists
+        self.assertTrue(Project.objects.all().exists())
+
+        # force logout of admin
+        self.client.logout()
+
+        # login end user (who's not registered as a project author)
+        self.client.force_login(self.end_user)
+
+        # get all projects
+        response = self.client.get("/projects/")
+
+        # assert no project have been received
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['count'], 0)
+
     def test_create_project(self):
         """
         Create a new project, with user created in setUp() as author
         """
+
+        self.client.force_login(self.end_user)
 
         # create new project
         response = self.client.post("/projects/", data={
@@ -130,7 +155,7 @@ class TestProject(APITestCase):
         })
 
         # assert the update operation as rejected
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 404, response.json())
 
     def test_delete_project(self):
 
@@ -160,7 +185,7 @@ class TestProject(APITestCase):
         response = self.client.delete("/projects/1/")
 
         # assert the delete operation was rejected
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 404)
 
 
 class TestContributor(APITestCase):
