@@ -7,7 +7,7 @@ from projects.models import Project, Contributor
 class IsAuthorOrReadOnly(permissions.BasePermission):
 
     def has_object_permission(self, request, view, project: Project):
-        if request.method in permissions.SAFE_METHODS:
+        if request.method in permissions.SAFE_METHODS and request.user.is_authenticated:
             return True
         else:
             return project.author.pk == request.user.pk
@@ -17,7 +17,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     queryset = Project.objects.all().order_by("id")
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthorOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated, IsAuthorOrReadOnly]
 
     def get_queryset(self):
 

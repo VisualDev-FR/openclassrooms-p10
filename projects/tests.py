@@ -26,6 +26,20 @@ class TestProject(APITestCase):
             "author": self.admin.pk
         })
 
+    def test_get_project(self):
+
+        response = self.client.get("/projects/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["count"], 1)
+
+    def test_get_project_without_credential(self):
+
+        self.client.logout()
+
+        response = self.client.get("/projects/")
+        self.assertEqual(response.status_code, 403)
+
     def test_create_project(self):
         """
         Create a new project, with user created in setUp() as author
@@ -103,11 +117,25 @@ class TestProject(APITestCase):
 
     def test_delete_project(self):
 
-        deleted_project = Project.objects.filter(description="existing_project")
-        self.assertTrue(deleted_project.exists())
+        PROJECT_DESC = "existing_project"
 
+        # check if the project we want to delete exists
+        existing_project = Project.objects.filter(description=PROJECT_DESC)
+        self.assertTrue(existing_project.exists())
+
+        # delete the desired project
         response = self.client.delete("/projects/1/")
         self.assertEqual(response.status_code, 204)
 
-        deleted_project = Project.objects.filter(description="existing_project")
+        # check if the desired project was successfully deleted
+        deleted_project = Project.objects.filter(description=PROJECT_DESC)
         self.assertFalse(deleted_project.exists())
+
+    def test_delete_project_from_non_author(self):
+
+        self.client.logout()
+        self.client.force_login(self.end_user)
+
+        response = self.client.delete("/projects/1/")
+
+        self.assertEqual(response.status_code, 403)
