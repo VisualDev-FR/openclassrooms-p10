@@ -1,5 +1,4 @@
-from rest_framework import viewsets, permissions, status
-from rest_framework.response import Response
+from rest_framework import viewsets, permissions
 from projects.serializers import ProjectSerializer, ContributorSerializer
 from projects.models import Project, Contributor
 
@@ -20,7 +19,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsAuthorOrReadOnly]
 
     def get_queryset(self):
-
+        """
+        Override queryset getter, in order to add custom filters
+        """
         queryset = Project.objects.all()
 
         description = self.request.GET.get("description", None)
@@ -30,23 +31,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
         return queryset.order_by("id")
 
-    def create(self, request, *args, **kwargs):
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-
-        Contributor.objects.create(
-            project=serializer.instance,
-            user=serializer.instance.author,
-        )
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
 
 class ContributorViewSet(viewsets.ModelViewSet):
 
-    queryset = Contributor.objects.all().order_by("project_id")
+    queryset = Contributor.objects.all()
     serializer_class = ContributorSerializer
     permission_classes = [permissions.IsAuthenticated]

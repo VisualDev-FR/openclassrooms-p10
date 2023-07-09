@@ -28,6 +28,23 @@ class Project(models.Model):
 
     created_time = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        """
+        Override default save method, in order to add auto creation of contributor
+        """
+
+        # apply the regular parent save method
+        project = super().save(*args, **kwargs)
+
+        # create a contributor between author and created project
+        Contributor.objects.create(
+            project=self,
+            user=self.author,
+        )
+
+        # parent save method return
+        return project
+
 
 class Contributor(models.Model):
     """
