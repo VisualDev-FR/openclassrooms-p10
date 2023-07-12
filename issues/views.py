@@ -2,6 +2,12 @@ from rest_framework import viewsets, permissions
 from issues.models import Issue
 from issues.serializers import IssueSerializer
 from projects.models import Contributor
+from rest_framework.response import Response
+from rest_framework import status
+
+
+def is_project_contributor(user_id: int, project_id: int):
+    return Contributor.objects.filter(user_id=user_id, project_id=project_id).exists()
 
 
 class IsAuthorOrContributor(permissions.BasePermission):
@@ -9,7 +15,7 @@ class IsAuthorOrContributor(permissions.BasePermission):
     def has_object_permission(self, request, view, issue: Issue):
 
         is_author = issue.author.pk == request.user.pk
-        is_contributor = Issue.objects.filter(user_id=request.user.pk, project_id=issue.id).exists()
+        is_contributor = is_project_contributor(user_id=request.user.pk, project_id=issue.id)
 
         if request.method in permissions.SAFE_METHODS:
             return is_contributor
@@ -38,3 +44,19 @@ class IssueViewSet(viewsets.ModelViewSet):
             self.queryset = self.queryset.filter(title=title)
 
         return self.queryset.order_by("created_time")
+
+    def create(self, request, *args, **kwargs):
+
+        self.get_serializer(data=request.data).is_valid(raise_exception=True)
+
+        user = request.user
+        project_id = request.data.get('project')
+        author_id = request.data.get('author')
+
+        is_contributor = is_project_contributor(user.pk, project_id)
+        create_for_himself = str(user.pk) == author_id
+
+        if not is_contributor or not create_for_himself:
+            return Response({"403": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
+
+        return super().create(request, *args, **kwargs)
