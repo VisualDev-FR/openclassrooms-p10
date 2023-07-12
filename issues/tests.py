@@ -272,7 +272,7 @@ class TestIssue(APITestCase):
         self.assertEqual(updated_issue.title, "TODO Issue")
 
     # DELETE
-    def test_delete_project(self):
+    def test_delete_issue(self):
 
         self.client.force_login(self.author)
 
