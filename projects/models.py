@@ -51,6 +51,10 @@ class Contributor(models.Model):
     Relation between a project and a user
     """
 
+    @classmethod
+    def is_contributor(self, user_id, project_id):
+        return self.objects.filter(user_id=user_id, project_id=project_id).exists()
+
     user = models.ForeignKey(
         to=SoftdeskUser,
         on_delete=models.CASCADE

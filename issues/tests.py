@@ -199,7 +199,7 @@ class TestIssue(APITestCase):
             "assigned_user": self.non_author.pk
         })
 
-        self.assertEqual(response.status_code, 403, response.json())
+        self.assertEqual(response.status_code, 400, response.json())
         self.assertEqual(Issue.objects.count(), 1)
 
     # RETREIVE
@@ -265,7 +265,7 @@ class TestIssue(APITestCase):
             "title": "BUG Issue"
         })
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200, response.json())
 
         updated_issue = Issue.objects.get(pk=1)
 
@@ -291,7 +291,7 @@ class TestIssue(APITestCase):
             "title": "BUG Issue"
         })
 
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 404, response.json())
 
         updated_issue = Issue.objects.get(pk=1)
 
@@ -320,13 +320,34 @@ class TestIssue(APITestCase):
         self.assertEqual(updated_issue.tag, "TODO")
         self.assertEqual(updated_issue.title, "TODO Issue")
 
-    # TODO: test_create_issue_with_assigned_contributor
     def test_update_issue_with_assigned_contributor(self):
-        pass
 
-    # TODO: test_create_issue_with_assigned_non_contributor
+        self.client.force_login(self.author)
+
+        Contributor.objects.create(
+            user=self.non_author,
+            project=self.project
+        )
+
+        response = self.client.patch("/issues/1/", data={
+            "assigned_user": self.non_author.pk
+        })
+
+        self.assertEqual(response.status_code, 200, response.json())
+
+        updated_issue = Issue.objects.get(pk=1)
+
+        self.assertEqual(updated_issue.assigned_user.username, "non_author")
+
     def test_update_issue_with_assigned_non_contributor(self):
-        pass
+
+        self.client.force_login(self.author)
+
+        response = self.client.patch("/issues/1/", data={
+            "assigned_user": self.non_author.pk
+        })
+
+        self.assertEqual(response.status_code, 400, response.json())
 
     # DELETE
     def test_delete_issue(self):
