@@ -1,4 +1,4 @@
-from issues.models import Issue
+from issues.models import Issue, Comment
 from projects.models import Contributor
 from rest_framework import serializers
 
@@ -27,4 +27,19 @@ class IssueSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Issue
+        fields = "__all__"
+
+
+class CommentSerializer(serializers.ModelSerializer):
+
+    # TODO: CommentSerializer.to_representation()
+    def to_representation(self, instance):
+        return super().to_representation(instance)
+
+    # TODO: CommentSerializer.validate()
+    def validate(self, attrs):
+        return attrs
+
+    class Meta:
+        model = Comment
         fields = "__all__"
