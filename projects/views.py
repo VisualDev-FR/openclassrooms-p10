@@ -63,3 +63,5 @@ class ContributorViewSet(mixins.CreateModelMixin,
         permissions.IsAuthenticated,
         ContributorDestroyPermission
     ]
+
+    # BUG: check before create : django.db.utils.IntegrityError: UNIQUE constraint failed: projects_contributor.user_id, projects_contributor.project_id
