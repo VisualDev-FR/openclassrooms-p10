@@ -1,5 +1,5 @@
 from rest_framework.test import APITestCase
-from issues.models import Issue
+from issues.models import Issue, Comment
 from user.models import SoftdeskUser
 from projects.models import Project, Contributor
 
@@ -390,3 +390,77 @@ class TestIssue(APITestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertEqual(Issue.objects.count(), 1)
+
+
+class TestComment(APITestCase):
+
+    def setUp(self) -> None:
+
+        self.project_author = SoftdeskUser.objects.create_user(
+            username="author",
+            password="password",
+            age=27,
+        )
+
+        self.project_contributor = SoftdeskUser.objects.create_user(
+            username="non_author",
+            password="password",
+            age=27,
+        )
+
+        self.project = Project.objects.create(
+            description="project",
+            type="FRONT",
+            author=self.project_author
+        )
+
+        Contributor.objects.create(
+            user=self.project_contributor,
+            project=self.project
+        )
+
+        self.assertEqual(Contributor.objects.all().count(), 2)
+
+        self.issue = Issue.objects.create(
+            tag="TODO",
+            title="TODO Issue",
+            description="Issue description",
+            project=self.project,
+            author=self.project_author
+        )
+
+        self.comment = Comment.objects.create(
+            issue=self.issue,
+            author=self.project_author,
+            description="useless comment, for testing purpose..."
+        )
+
+    # CREATE
+
+    def test_create_minimal_comment(self):
+
+        self.client.force_login(self.project_author)
+
+        response = self.client.post('/comments/', data={
+            "issue": self.issue.pk,
+            "author": self.project_author.pk,
+            "description": "null description"
+        })
+
+        self.assertEqual(response.status_code, 201, response.json())
+
+    def test_create_comment_from_contributor(self):
+
+        self.client.force_login(self.project_contributor)
+
+        response = self.client.post('/comments/', data={
+            "issue": self.issue.pk,
+            "author": self.project_contributor.pk,
+            "description": "null description"
+        })
+
+        self.assertEqual(response.status_code, 201, response.json())
+
+    # READ
+    # UPDATE
+    # DELETE

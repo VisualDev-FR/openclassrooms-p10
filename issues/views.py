@@ -1,6 +1,6 @@
 from rest_framework import viewsets, permissions
 from issues.models import Issue, Comment
-from issues.serializers import IssueSerializer
+from issues.serializers import IssueSerializer, CommentSerializer
 from projects.models import Contributor
 
 
@@ -73,7 +73,7 @@ class IssueViewSet(viewsets.ModelViewSet):
 class CommentViewset(viewsets.ModelViewSet):
 
     queryset = Comment.objects.all().order_by("created_time")
-    serializer_class = IssueSerializer
+    serializer_class = CommentSerializer
     permission_classes = [
         permissions.IsAuthenticated,
         CommentPermission
