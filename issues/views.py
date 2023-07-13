@@ -16,13 +16,13 @@ class IsAuthorOrContributor(permissions.BasePermission):
         create_for_himself = str(user.pk) == author_id
 
         if request.method in ["GET", "PATCH", "DELETE"]:
-            # will be handled in has_object_permission() method
-            # or in get_queryset_method
+            # will be handled in IsAuthorOrContributor.has_object_permission() or in IssueViewSet.get_queryset()
             return True
 
         if request.method == "POST":
             return user_is_contributor and create_for_himself
 
+        # any request out of CRUD will fail
         return False
 
     def has_object_permission(self, request, view, issue: Issue):
