@@ -1,10 +1,10 @@
 from rest_framework import viewsets, permissions
-from issues.models import Issue
+from issues.models import Issue, Comment
 from issues.serializers import IssueSerializer
 from projects.models import Contributor
 
 
-class IsAuthorOrContributor(permissions.BasePermission):
+class IssuesPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
 
@@ -36,13 +36,24 @@ class IsAuthorOrContributor(permissions.BasePermission):
             return is_author
 
 
+class CommentPermission(permissions.BasePermission):
+
+    # TODO: CommentPermission.has_permission()
+    def has_permission(self, request, view):
+        return super().has_permission(request, view)
+
+    # TODO: CommentPermission.has_object_permission()
+    def has_object_permission(self, request, view, obj):
+        return super().has_object_permission(request, view, obj)
+
+
 class IssueViewSet(viewsets.ModelViewSet):
 
     queryset = Issue.objects.all().order_by("created_time")
     serializer_class = IssueSerializer
     permission_classes = [
         permissions.IsAuthenticated,
-        IsAuthorOrContributor
+        IssuesPermission
     ]
 
     def get_queryset(self):
@@ -57,3 +68,17 @@ class IssueViewSet(viewsets.ModelViewSet):
             self.queryset = self.queryset.filter(title=title)
 
         return self.queryset.order_by("created_time")
+
+
+class CommentViewset(viewsets.ModelViewSet):
+
+    queryset = Comment.objects.all().order_by("created_time")
+    serializer_class = IssueSerializer
+    permission_classes = [
+        permissions.IsAuthenticated,
+        CommentPermission
+    ]
+
+    # TODO: CommentViewset.get_queryset()
+    def get_queryset(self):
+        return super().get_queryset()
