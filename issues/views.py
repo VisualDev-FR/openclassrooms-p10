@@ -52,14 +52,19 @@ class IssueViewSet(viewsets.ModelViewSet):
         user = request.user
         project_id = request.data.get('project')
         author_id = request.data.get('author')
+        assigned_user_id = request.data.get('assigned_user')
 
-        is_contributor = is_project_contributor(user.pk, project_id)
+        author_is_contributor = is_project_contributor(user.pk, project_id)
+        assigned_is_contributor = is_project_contributor(assigned_user_id, project_id)
         create_for_himself = str(user.pk) == author_id
 
-        if not is_contributor:
+        if assigned_user_id is not None and not assigned_is_contributor:
+            return Response({"assigned_user": "the assigned user must be a project contributor"}, status=status.HTTP_403_FORBIDDEN)
+
+        if not author_is_contributor:
             return Response({"author": "you must be registered as a project contributor to create an issue"}, status=status.HTTP_403_FORBIDDEN)
 
-        elif not create_for_himself:
+        if not create_for_himself:
             return Response({"author": "you cannot create an issue with someone else as an author"}, status=status.HTTP_403_FORBIDDEN)
 
         return super().create(request, *args, **kwargs)

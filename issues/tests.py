@@ -33,7 +33,7 @@ class TestIssue(APITestCase):
             title="TODO Issue",
             description="Issue description",
             project=self.project,
-            author=Contributor.objects.get(pk=1)
+            author=self.author
         )
 
     # CREATE
@@ -142,12 +142,61 @@ class TestIssue(APITestCase):
             project=self.project
         )
 
-        # create from an non authenticated user
+        # create an issue with another user as author
         response = self.client.post("/issues/", data={
             "tag": "BUG",
             "title": "fatal error",
             "project": self.project.pk,
             "author": self.non_author.pk,
+        })
+
+        self.assertEqual(response.status_code, 403, response.json())
+        self.assertEqual(Issue.objects.count(), 1)
+
+    def test_create_issue_with_assigned_contributor(self):
+
+        self.client.force_login(self.author)
+
+        Contributor.objects.create(
+            project=self.project,
+            user=self.non_author
+        )
+
+        # assignate another user
+        response = self.client.post("/issues/", data={
+            "tag": "BUG",
+            "title": "fatal error",
+            "project": self.project.pk,
+            "author": self.author.pk,
+            "assigned_user": self.non_author.pk
+        })
+
+        self.assertEqual(response.status_code, 201, response.json())
+        self.assertEqual(Issue.objects.count(), 2)
+
+        # assignate himself
+        response = self.client.post("/issues/", data={
+            "tag": "BUG",
+            "title": "fatal error",
+            "project": self.project.pk,
+            "author": self.author.pk,
+            "assigned_user": self.author.pk
+        })
+
+        self.assertEqual(response.status_code, 201, response.json())
+        self.assertEqual(Issue.objects.count(), 3)
+
+    def test_create_issue_with_assigned_non_contributor(self):
+
+        self.client.force_login(self.author)
+
+        # assignate an user who is not registered as a project contributor
+        response = self.client.post("/issues/", data={
+            "tag": "BUG",
+            "title": "fatal error",
+            "project": self.project.pk,
+            "author": self.author.pk,
+            "assigned_user": self.non_author.pk
         })
 
         self.assertEqual(response.status_code, 403, response.json())
@@ -270,6 +319,14 @@ class TestIssue(APITestCase):
 
         self.assertEqual(updated_issue.tag, "TODO")
         self.assertEqual(updated_issue.title, "TODO Issue")
+
+    # TODO: test_create_issue_with_assigned_contributor
+    def test_update_issue_with_assigned_contributor(self):
+        pass
+
+    # TODO: test_create_issue_with_assigned_non_contributor
+    def test_update_issue_with_assigned_non_contributor(self):
+        pass
 
     # DELETE
     def test_delete_issue(self):
