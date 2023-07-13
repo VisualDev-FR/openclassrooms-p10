@@ -60,7 +60,7 @@ class TestIssue(APITestCase):
             "title": "fatal error",
             "project": self.project.pk,
         })
-        self.assertEqual(response.status_code, 400, response.json())
+        self.assertEqual(response.status_code, 403, response.json())
 
         # create issue without project
         response = self.client.post("/issues/", data={
@@ -68,7 +68,7 @@ class TestIssue(APITestCase):
             "title": "fatal error",
             "author": self.author.pk,
         })
-        self.assertEqual(response.status_code, 400, response.json())
+        self.assertEqual(response.status_code, 403, response.json())
 
         # create issue without title
         response = self.client.post("/issues/", data={
