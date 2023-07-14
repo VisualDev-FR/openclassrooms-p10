@@ -19,14 +19,14 @@ from rest_framework import routers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from user.views import UserViewSet
 from projects.views import ProjectViewSet, ContributorViewSet
-from issues.views import IssueViewSet
-
+from issues.views import IssueViewSet, CommentViewset
 
 router = routers.DefaultRouter()
 router.register(r'users', UserViewSet)
 router.register(r'projects', ProjectViewSet)
 router.register(r'contributors', ContributorViewSet)
 router.register(r'issues', IssueViewSet)
+router.register(r'comments', CommentViewset)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.

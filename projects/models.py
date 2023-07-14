@@ -55,6 +55,10 @@ class Contributor(models.Model):
     def is_contributor(self, user_id, project_id):
         return self.objects.filter(user_id=user_id, project_id=project_id).exists()
 
+    @classmethod
+    def get_user_projects(self, user_id):
+        return self.objects.filter(user_id=user_id).values_list("project_id", flat=True)
+
     user = models.ForeignKey(
         to=SoftdeskUser,
         on_delete=models.CASCADE

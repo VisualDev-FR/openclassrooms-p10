@@ -68,7 +68,7 @@ class Issue(models.Model):
     )
 
 
-""" class Comment(models.Model):
+class Comment(models.Model):
 
     issue = models.ForeignKey(
         to=Issue,
@@ -76,7 +76,7 @@ class Issue(models.Model):
     )
 
     author = models.ForeignKey(
-        to=Contributor,
+        to=SoftdeskUser,
         on_delete=models.CASCADE
     )
 
@@ -86,4 +86,4 @@ class Issue(models.Model):
 
     created_time = models.DateTimeField(
         auto_now=True
-    ) """
+    )
