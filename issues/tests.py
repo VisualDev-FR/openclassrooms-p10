@@ -759,7 +759,7 @@ class TestComment(APITestCase):
         })
 
         self.assertEqual(response.status_code, 400, response.json())
-        self.assertEqual(response.json(), {'non_field_errors': ['the issue of a comment cant be modified']}, response.json())
+        self.assertEqual(response.json(), {'issue': ['the issue of a comment cant be modified']}, response.json())
 
         # update the comment author
         response = self.client.patch("/comments/1/", data={
@@ -767,7 +767,7 @@ class TestComment(APITestCase):
         })
 
         self.assertEqual(response.status_code, 400, response.json())
-        self.assertEqual(response.json(), {'non_field_errors': ['the author of a comment cant be modified']}, response.json())
+        self.assertEqual(response.json(), {'author': ['the author of a comment cant be modified']}, response.json())
 
         updated_comment = Comment.objects.get(pk=1)
         self.assertEqual(updated_comment.issue.pk, self.issue.pk)
