@@ -23,6 +23,21 @@ class IssueSerializer(serializers.ModelSerializer):
         if assigned_user_id and not assigned_user_is_contributor:
             raise serializers.ValidationError("assigned user must be a project contributor")
 
+        author_changed = False
+        project_changed = False
+
+        if self.instance and data.get("project"):
+            project_changed = self.instance.project.pk != data.get("project")
+
+        if self.instance and data.get("author"):
+            author_changed = self.instance.author.pk != data.get("author")
+
+        if project_changed:
+            raise serializers.ValidationError("the project of an issue cant be modified")
+
+        if author_changed:
+            raise serializers.ValidationError("the author of an issue cant be modified")
+
         return data
 
     class Meta:
@@ -36,9 +51,24 @@ class CommentSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return super().to_representation(instance)
 
-    # TODO: CommentSerializer.validate()
-    def validate(self, attrs):
-        return attrs
+    def validate(self, data: dict):
+
+        issue_changed = False
+        author_changed = False
+
+        if self.instance and data.get("issue"):
+            issue_changed = self.instance.issue.pk != data.get("issue")
+
+        if self.instance and data.get("author"):
+            author_changed = self.instance.author.pk != data.get("author")
+
+        if issue_changed:
+            raise serializers.ValidationError("the issue of a comment cant be modified")
+
+        if author_changed:
+            raise serializers.ValidationError("the author of a comment cant be modified")
+
+        return data
 
     class Meta:
         model = Comment
