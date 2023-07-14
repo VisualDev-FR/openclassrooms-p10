@@ -60,7 +60,7 @@ class TestProject(APITestCase):
         })
 
         # assert that the request was rejected
-        self.assertEqual(response.status_code, 400, response.json())
+        self.assertEqual(response.status_code, 403, response.json())
 
     def test_create_project_with_invalid_type(self):
 
@@ -226,109 +226,198 @@ class TestContributor(APITestCase):
 
     def setUp(self) -> None:
 
-        self.authenticated_user = SoftdeskUser.objects.create(
-            username="end_user",
-            password="admin",
-            age=27
-        )
-        self.client.force_login(self.authenticated_user)
-
-        self.author1 = SoftdeskUser.objects.create(
-            username="author1",
-            password="admin",
-            age=27
+        self.project_author = SoftdeskUser.objects.create_user(
+            username="project_author",
+            password="password",
+            age=27,
         )
 
-        self.project1 = Project.objects.create(
-            description="project1",
+        self.project_contributor = SoftdeskUser.objects.create_user(
+            username="project_contributor",
+            password="password",
+            age=27,
+        )
+
+        self.random_user = SoftdeskUser.objects.create_user(
+            username="random_user",
+            password="password",
+            age=27,
+        )
+
+        self.project = Project.objects.create(
+            description="existing_project",
             type="FRONT",
-            author=self.author1
+            author=self.project_author
         )
 
-        self.author2 = SoftdeskUser.objects.create(
-            username="author2",
-            password="admin",
-            age=27
-        )
-
-        self.project2 = Project.objects.create(
-            description="project2",
-            type="BACK",
-            author=self.author2
-        )
-
-        self.assertEqual(
-            Contributor.objects.all().count(),
-            2
+        Contributor.objects.create(
+            project=self.project,
+            user=self.project_contributor
         )
 
     # CREATE
-    def test_create_contributor(self):
+    def test_create_contributor_from_project_author(self):
+
+        self.client.force_login(self.project_author)
 
         response = self.client.post("/contributors/", data={
-            "user": 3,
-            "project": 1,
+            "user": self.random_user.pk,
+            "project": self.project.pk,
         })
 
-        self.assertEqual(response.status_code, 201)
-
-        contributor = Contributor.objects.get(pk=3)
-
-        self.assertEqual(contributor.project.description, "project1")
-        self.assertEqual(contributor.user.username, "author2")
+        self.assertEqual(response.status_code, 201, response.json())
 
     def test_create_existing_contributor(self):
 
+        self.client.force_login(self.project_author)
+
         response = self.client.post("/contributors/", data={
-            "user": 2,
-            "project": 1,
+            "user": self.project_contributor.pk,
+            "project": self.project.pk,
         })
 
         self.assertEqual(response.status_code, 400, response.json())
+        self.assertEqual(response.json(), {'non_field_errors': ['The fields user, project must make a unique set.']})
+
+    def test_create_contributor_from_unauthorized(self):
+
+        # create user from non authenticated user
+        response = self.client.post("/contributors/", data={
+            "user": self.random_user.pk,
+            "project": self.project.pk,
+        })
+        self.assertEqual(response.status_code, 403, response.json())
+
+        # create user from project contributor
+        self.client.force_login(self.project_contributor)
+        response = self.client.post("/contributors/", data={
+            "user": self.random_user.pk,
+            "project": self.project.pk,
+        })
+        self.assertEqual(response.status_code, 403, response.json())
+
+        # create user from non contributor user
+        self.client.force_login(self.random_user)
+        response = self.client.post("/contributors/", data={
+            "user": self.random_user.pk,
+            "project": self.project.pk,
+        })
+        self.assertEqual(response.status_code, 403, response.json())
+
+    def test_create_contributor_with_missing_datas(self):
+
+        self.client.force_login(self.project_author)
+
+        # create contributor without project
+        response = self.client.post("/contributors/", data={
+            "user": self.random_user.pk,
+        })
+        self.assertEqual(response.status_code, 400, response.json())
+        self.assertEqual(response.json(), {'project': ['This field is required.']})
+
+        # create contributor without user
+        response = self.client.post("/contributors/", data={
+            "project": self.project.pk,
+        })
+        self.assertEqual(response.status_code, 400, response.json())
+        self.assertEqual(response.json(), {'user': ['This field is required.']})
 
     # RETREIVE
-    def test_get_contributor(self):
+    def test_get_contributor_from_author(self):
+
+        self.client.force_login(self.project_author)
 
         response = self.client.get("/contributors/")
-
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['count'], 2)
 
-    def test_get_contributor_without_credential(self):
+        response = self.client.get("/contributors/1/")
+        self.assertEqual(response.status_code, 200)
 
-        self.client.logout()
+    def test_get_contributor_from_contributor(self):
+
+        self.client.force_login(self.project_contributor)
 
         response = self.client.get("/contributors/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['count'], 2)
 
+        response = self.client.get("/contributors/1/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_contributor_from_unauthorized(self):
+
+        # get contributors from non authenticated user
+        response = self.client.get("/contributors/")
         self.assertEqual(response.status_code, 403)
+
+        response = self.client.get("/contributors/1/")
+        self.assertEqual(response.status_code, 403)
+
+        # get contributors from non contributor user
+        self.client.force_login(self.random_user)
+
+        response = self.client.get("/contributors/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['count'], 0)
+
+        response = self.client.get("/contributors/1/")
+        self.assertEqual(response.status_code, 404)
 
     # UPDATE
     def test_update_contributor(self):
 
+        # update from non authenticated user
         response = self.client.post("/contributors/1/", data={
-            "user": 3
+            "user": self.random_user.pk
         })
+        self.assertEqual(response.status_code, 403, response.json())
 
+        # update from a non contributor user
+        self.client.force_login(self.random_user)
+        response = self.client.post("/contributors/1/", data={
+            "user": self.random_user.pk
+        })
+        self.assertEqual(response.status_code, 405, response.json())
+
+        # update from a contributor user
+        self.client.force_login(self.project_contributor)
+        response = self.client.post("/contributors/1/", data={
+            "user": self.random_user.pk
+        })
+        self.assertEqual(response.status_code, 405, response.json())
+
+        # update from a the project author
+        self.client.force_login(self.project_author)
+        response = self.client.post("/contributors/1/", data={
+            "user": self.random_user.pk
+        })
         self.assertEqual(response.status_code, 405, response.json())
 
     # DELETE
-    def test_delete_contributor(self):
+    def test_delete_contributor_from_author(self):
 
-        self.client.logout()
-        self.client.force_login(self.author1)
+        self.client.force_login(self.project_author)
 
         response = self.client.delete("/contributors/1/")
 
         self.assertEqual(response.status_code, 204)
+        self.assertFalse(Contributor.objects.filter(pk=1).exists())
 
-    def test_delete_contributor_without_being_author(self):
+    def test_delete_contributor_from_unauthorized(self):
 
-        response = self.client.get("/contributors/1/")
-
-        # assert that the desired project author is different to logged author
-        self.assertEqual(response.json()['project']['author']['username'], "author1")
-
-        # try to delete a contributor from a project, without being registered as the author of this project
+        # delete from a non authenticated user
         response = self.client.delete("/contributors/1/")
+        self.assertEqual(response.status_code, 403)
 
+        # delete from a contributor user
+        self.client.force_login(self.project_contributor)
+
+        response = self.client.delete("/contributors/1/")
+        self.assertEqual(response.status_code, 403)
+
+        # delete from a non contributor user
+        self.client.force_login(self.project_contributor)
+
+        response = self.client.delete("/contributors/1/")
         self.assertEqual(response.status_code, 403)

@@ -62,6 +62,10 @@ class Contributor(models.Model):
     def get_user_projects(self, user_id):
         return self.objects.filter(user_id=user_id).values_list("project_id", flat=True)
 
+    created_time = models.DateTimeField(
+        auto_now=True
+    )
+
     user = models.ForeignKey(
         to=SoftdeskUser,
         on_delete=models.CASCADE

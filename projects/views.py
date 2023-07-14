@@ -1,16 +1,16 @@
-from rest_framework import viewsets, permissions, mixins
+from rest_framework import viewsets, permissions
 from projects.serializers import ProjectSerializer, ContributorSerializer
 from projects.models import Project, Contributor
+from rest_framework import status
+from rest_framework.response import Response
 
 
 class ProjectPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
 
-        user = request.user
         author_id = request.data.get("author")
-
-        create_for_himself = str(user.pk) == author_id
+        create_for_himself = str(request.user.pk) == author_id
 
         if request.method in ["GET", "PATCH", "DELETE"]:
             # will be handled in ProjectPermission.has_object_permission() or in IssueViewSet.get_queryset()
@@ -33,13 +33,34 @@ class ProjectPermission(permissions.BasePermission):
             return is_author
 
 
-class ContributorDestroyPermission(permissions.BasePermission):
+class ContributorPermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+
+        if request.method in ["POST"]:
+
+            project_id = request.data.get("project")
+            project = Project.objects.filter(pk=project_id)
+
+            if project.exists():
+                # the user who tries to create a contributor must be the project author
+                user_is_author = project[0].author.pk == request.user.pk
+                return user_is_author
+
+            else:
+                # the post request will fail if no project is specified
+                pass
+
+        return True
 
     def has_object_permission(self, request, view, obj: Contributor):
         if request.method in permissions.SAFE_METHODS:
             return True
-        else:
+
+        if request.method == "DELETE":
             return obj.project.author.pk == request.user.pk
+
+        return False
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -68,17 +89,23 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return self.queryset.order_by("created_time")
 
 
-class ContributorViewSet(mixins.CreateModelMixin,
-                         mixins.RetrieveModelMixin,
-                         mixins.DestroyModelMixin,
-                         mixins.ListModelMixin,
-                         viewsets.GenericViewSet):
+class ContributorViewSet(viewsets.ModelViewSet):
 
     queryset = Contributor.objects.all().order_by("user_id")
     serializer_class = ContributorSerializer
     permission_classes = [
         permissions.IsAuthenticated,
-        ContributorDestroyPermission
+        ContributorPermission
     ]
 
-    # BUG: check before create : django.db.utils.IntegrityError: UNIQUE constraint failed: projects_contributor.user_id, projects_contributor.project_id
+    def get_queryset(self):
+
+        user_accessible_projects = Contributor.get_user_projects(self.request.user.pk)
+        user_accessible_contributors = Contributor.objects.filter(project_id__in=user_accessible_projects)
+
+        self.queryset = user_accessible_contributors
+
+        return self.queryset.order_by("created_time")
+
+    def update(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
