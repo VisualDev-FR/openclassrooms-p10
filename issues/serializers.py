@@ -18,27 +18,25 @@ class IssueSerializer(serializers.ModelSerializer):
         assigned_user_is_contributor = Contributor.is_contributor(assigned_user_id, project_id)
 
         if not author_is_contributor:
-            raise serializers.ValidationError("author must be a project contributor")
+            raise serializers.ValidationError("the issue author must be a project contributor")
 
         if assigned_user_id and not assigned_user_is_contributor:
-            raise serializers.ValidationError("assigned user must be a project contributor")
-
-        author_changed = False
-        project_changed = False
-
-        if self.instance and data.get("project"):
-            project_changed = self.instance.project.pk != data.get("project")
-
-        if self.instance and data.get("author"):
-            author_changed = self.instance.author.pk != data.get("author")
-
-        if project_changed:
-            raise serializers.ValidationError("the project of an issue cant be modified")
-
-        if author_changed:
-            raise serializers.ValidationError("the author of an issue cant be modified")
+            raise serializers.ValidationError("the assigned user must be a project contributor")
 
         return data
+
+    def validate_author(self, author_id):
+
+        if self.instance:
+            raise serializers.ValidationError("update the author of an issue is not allowed")
+        else:
+            return author_id
+
+    def validate_project(self, project_id):
+        if self.instance:
+            raise serializers.ValidationError("update the project of an issue is not allowed")
+        else:
+            return project_id
 
     class Meta:
         model = Issue

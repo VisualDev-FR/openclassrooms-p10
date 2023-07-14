@@ -33,14 +33,17 @@ class Project(models.Model):
         Override default save method, in order to add auto creation of contributor
         """
 
+        project_is_being_created = self.pk is None
+
         # apply the regular parent save method
         project = super().save(*args, **kwargs)
 
-        # create a contributor between author and created project
-        Contributor.objects.create(
-            project=self,
-            user=self.author,
-        )
+        if project_is_being_created:
+            # create a contributor between author and created project
+            Contributor.objects.create(
+                project=self,
+                user=self.author,
+            )
 
         # parent save method return
         return project
@@ -58,6 +61,10 @@ class Contributor(models.Model):
     @classmethod
     def get_user_projects(self, user_id):
         return self.objects.filter(user_id=user_id).values_list("project_id", flat=True)
+
+    created_time = models.DateTimeField(
+        auto_now=True
+    )
 
     user = models.ForeignKey(
         to=SoftdeskUser,
