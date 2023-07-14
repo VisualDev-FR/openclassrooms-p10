@@ -53,3 +53,9 @@ class ContributorSerializer(serializers.ModelSerializer):
             'user',
             'project',
         ]
+        validators = [
+            serializers.UniqueTogetherValidator(
+                queryset=Contributor.objects.all(),
+                fields=["user", "project"]
+            )
+        ]

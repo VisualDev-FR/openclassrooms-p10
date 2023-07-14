@@ -1,11 +1,6 @@
 from rest_framework.test import APITestCase
 from user.models import SoftdeskUser
 from projects.models import Project, Contributor
-import json
-
-
-def print_as_json(iterble):
-    print(json.dumps(iterble, indent=4))
 
 
 class TestProject(APITestCase):
@@ -31,42 +26,7 @@ class TestProject(APITestCase):
             "author": self.admin.pk
         })
 
-    def test_get_project(self):
-
-        # get all projects
-        response = self.client.get("/projects/")
-
-        # assert data have been successfully received
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["count"], 1)
-
-    def test_get_project_without_credential(self):
-
-        # logout the authenticated user in setUp() method
-        self.client.logout()
-
-        # assert that access is denied
-        response = self.client.get("/projects/")
-        self.assertEqual(response.status_code, 403)
-
-    def test_get_project_without_being_contributor(self):
-
-        # check if at least one project exists
-        self.assertTrue(Project.objects.all().exists())
-
-        # force logout of admin
-        self.client.logout()
-
-        # login end user (who's not registered as a project author)
-        self.client.force_login(self.end_user)
-
-        # get all projects
-        response = self.client.get("/projects/")
-
-        # assert no project have been received
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['count'], 0)
-
+    # CREATE
     def test_create_project(self):
         """
         Create a new project, with user created in setUp() as author
@@ -126,6 +86,44 @@ class TestProject(APITestCase):
         # check the status code of the response
         self.assertEqual(response.status_code, 400, response.json())
 
+    # RETREIVE
+    def test_get_project(self):
+
+        # get all projects
+        response = self.client.get("/projects/")
+
+        # assert data have been successfully received
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["count"], 1)
+
+    def test_get_project_without_credential(self):
+
+        # logout the authenticated user in setUp() method
+        self.client.logout()
+
+        # assert that access is denied
+        response = self.client.get("/projects/")
+        self.assertEqual(response.status_code, 403)
+
+    def test_get_project_without_being_contributor(self):
+
+        # check if at least one project exists
+        self.assertTrue(Project.objects.all().exists())
+
+        # force logout of admin
+        self.client.logout()
+
+        # login end user (who's not registered as a project author)
+        self.client.force_login(self.end_user)
+
+        # get all projects
+        response = self.client.get("/projects/")
+
+        # assert no project have been received
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['count'], 0)
+
+    # UPDATE
     def test_update_project(self):
 
         # update the existing project, created in setUp() method
@@ -133,14 +131,11 @@ class TestProject(APITestCase):
             "type": "BACK",
         })
 
+        updated_project = Project.objects.get(pk=1)
+
         # assert update was sucessfully applied
-        self.assertIn(response.status_code, [200, 201])
-
-        # retreive the project from django ORM
-        project = Project.objects.get(description="existing_project")
-
-        # assert the update was sucessfully applied in database
-        self.assertEqual(project.type, "BACK")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(updated_project.type, "BACK")
 
     def test_update_project_from_non_author(self):
 
@@ -158,6 +153,7 @@ class TestProject(APITestCase):
         # assert the update operation was rejected
         self.assertEqual(response.status_code, 404, response.json())
 
+    # DELETE
     def test_delete_project(self):
 
         PROJECT_DESC = "existing_project"
@@ -229,21 +225,7 @@ class TestContributor(APITestCase):
             2
         )
 
-    def test_get_contributor(self):
-
-        response = self.client.get("/contributors/")
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['count'], 2)
-
-    def test_get_contributor_without_credential(self):
-
-        self.client.logout()
-
-        response = self.client.get("/contributors/")
-
-        self.assertEqual(response.status_code, 403)
-
+    # CREATE
     def test_create_contributor(self):
 
         response = self.client.post("/contributors/", data={
@@ -267,6 +249,23 @@ class TestContributor(APITestCase):
 
         self.assertEqual(response.status_code, 400, response.json())
 
+    # RETREIVE
+    def test_get_contributor(self):
+
+        response = self.client.get("/contributors/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['count'], 2)
+
+    def test_get_contributor_without_credential(self):
+
+        self.client.logout()
+
+        response = self.client.get("/contributors/")
+
+        self.assertEqual(response.status_code, 403)
+
+    # UPDATE
     def test_update_contributor(self):
 
         response = self.client.post("/contributors/1/", data={
@@ -275,6 +274,7 @@ class TestContributor(APITestCase):
 
         self.assertEqual(response.status_code, 405, response.json())
 
+    # DELETE
     def test_delete_contributor(self):
 
         self.client.logout()
