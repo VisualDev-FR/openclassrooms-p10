@@ -3,7 +3,24 @@ from projects.serializers import ProjectSerializer, ContributorSerializer
 from projects.models import Project, Contributor
 
 
-class IsAuthorOrContributor(permissions.BasePermission):
+class ProjectPermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+
+        user = request.user
+        author_id = request.data.get("author")
+
+        create_for_himself = str(user.pk) == author_id
+
+        if request.method in ["GET", "PATCH", "DELETE"]:
+            # will be handled in ProjectPermission.has_object_permission() or in IssueViewSet.get_queryset()
+            return True
+
+        if request.method == "POST":
+            return create_for_himself
+
+        # any request out of CRUD will fail
+        return False
 
     def has_object_permission(self, request, view, project: Project):
 
@@ -31,7 +48,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
     permission_classes = [
         permissions.IsAuthenticated,
-        IsAuthorOrContributor
+        ProjectPermission
     ]
 
     def get_queryset(self):

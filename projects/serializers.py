@@ -6,6 +6,15 @@ from user.models import SoftdeskUser
 
 class ProjectSerializer(serializers.ModelSerializer):
 
+    def validate_author(self, author_id):
+        """
+        Allow to prevent the author update
+        """
+        if self.instance:
+            raise serializers.ValidationError("update the project author is not allowed")
+
+        return author_id
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
 
