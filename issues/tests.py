@@ -2,6 +2,7 @@ from rest_framework.test import APITestCase
 from issues.models import Issue, Comment
 from user.models import SoftdeskUser
 from projects.models import Project, Contributor
+from settings import settings
 
 
 class TestIssue(APITestCase):
@@ -35,6 +36,26 @@ class TestIssue(APITestCase):
             project=self.project,
             author=self.author
         )
+
+    def test_pagination(self):
+
+        PAGE_SIZE = settings.REST_FRAMEWORK['PAGE_SIZE']
+
+        for i in range(PAGE_SIZE + 1):
+            Issue.objects.create(
+                tag="TODO",
+                title=f"TODO Issue{i}",
+                description="Issue description",
+                project=self.project,
+                author=self.author
+            )
+
+        self.client.force_login(self.author)
+
+        response = self.client.get("/issues/")
+
+        self.assertEqual(Issue.objects.all().count(), PAGE_SIZE + 2)
+        self.assertEqual(len(response.json()['results']), PAGE_SIZE)
 
     # CREATE
     def test_create_minimal_issue(self):
@@ -514,6 +535,24 @@ class TestComment(APITestCase):
             description="useless comment, for testing purpose..."
         )
 
+    def test_pagination(self):
+
+        PAGE_SIZE = settings.REST_FRAMEWORK['PAGE_SIZE']
+
+        for i in range(PAGE_SIZE + 1):
+            Comment.objects.create(
+                issue=self.issue,
+                author=self.project_author,
+                description=f"comment{i}"
+            )
+
+        self.client.force_login(self.project_author)
+
+        response = self.client.get("/comments/")
+
+        self.assertEqual(Comment.objects.all().count(), PAGE_SIZE + 2)
+        self.assertEqual(len(response.json()['results']), PAGE_SIZE)
+
     # CREATE
 
     def test_create_minimal_comment(self):
@@ -766,3 +805,8 @@ class TestComment(APITestCase):
         self.assertEqual(response.status_code, 404)
 
         self.assertTrue(Comment.objects.filter(pk=1).exists())
+
+
+# TODO: TestIssuesIntegration
+class TestIssuesIntegration(APITestCase):
+    pass

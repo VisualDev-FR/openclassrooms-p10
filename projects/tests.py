@@ -1,6 +1,7 @@
 from rest_framework.test import APITestCase
 from user.models import SoftdeskUser
 from projects.models import Project, Contributor
+from settings import settings
 
 
 class TestProject(APITestCase):
@@ -35,6 +36,24 @@ class TestProject(APITestCase):
             project=self.project,
             user=self.project_contributor
         )
+
+    def test_pagination(self):
+
+        PAGE_SIZE = settings.REST_FRAMEWORK['PAGE_SIZE']
+
+        for i in range(PAGE_SIZE + 1):
+            Project.objects.create(
+                description=f"project_{i}",
+                type="FRONT",
+                author=self.project_author
+            )
+
+        self.client.force_login(self.project_author)
+
+        response = self.client.get("/projects/")
+
+        self.assertEqual(len(response.json()['results']), PAGE_SIZE)
+        self.assertEqual(Project.objects.all().count(), 12)
 
     # CREATE
     def test_create_project(self):
@@ -255,6 +274,24 @@ class TestContributor(APITestCase):
             user=self.project_contributor
         )
 
+    def test_pagination(self):
+
+        PAGE_SIZE = settings.REST_FRAMEWORK['PAGE_SIZE']
+
+        for i in range(PAGE_SIZE + 1):
+            Project.objects.create(
+                description=f"project_{i}",
+                type="FRONT",
+                author=self.project_author
+            )
+
+        self.client.force_login(self.project_author)
+
+        response = self.client.get("/contributors/")
+
+        self.assertEqual(Contributor.objects.all().count(), PAGE_SIZE + 3)
+        self.assertEqual(len(response.json()['results']), PAGE_SIZE)
+
     # CREATE
     def test_create_contributor_from_project_author(self):
 
@@ -421,3 +458,8 @@ class TestContributor(APITestCase):
 
         response = self.client.delete("/contributors/1/")
         self.assertEqual(response.status_code, 403)
+
+
+# TODO: TestProjectsIntegration
+class TestProjectsIntegration(APITestCase):
+    pass
