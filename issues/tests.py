@@ -408,6 +408,12 @@ class TestComment(APITestCase):
             age=27,
         )
 
+        self.random_user = SoftdeskUser.objects.create_user(
+            username="random_user",
+            password="password",
+            age=27,
+        )
+
         self.project = Project.objects.create(
             description="project",
             type="FRONT",
@@ -449,6 +455,34 @@ class TestComment(APITestCase):
 
         self.assertEqual(response.status_code, 201, response.json())
 
+    def test_create_comment_with_missing_datas(self):
+
+        self.client.force_login(self.project_author)
+
+        # create comment without issue
+        response = self.client.post('/comments/', data={
+            "author": self.project_author.pk,
+            "description": "null description"
+        })
+
+        self.assertEqual(response.status_code, 400, response.json())
+
+        # create comment without author
+        response = self.client.post('/comments/', data={
+            "issue": self.issue.pk,
+            "description": "null description"
+        })
+
+        self.assertEqual(response.status_code, 403, response.json())
+
+        # create comment without description
+        response = self.client.post('/comments/', data={
+            "issue": self.issue.pk,
+            "author": self.project_author.pk,
+        })
+
+        self.assertEqual(response.status_code, 400, response.json())
+
     def test_create_comment_from_contributor(self):
 
         self.client.force_login(self.project_contributor)
@@ -461,6 +495,93 @@ class TestComment(APITestCase):
 
         self.assertEqual(response.status_code, 201, response.json())
 
-    # READ
+    def test_create_comment_from_unauthorized(self):
+
+        # create comment from non authenticated user
+        response = self.client.post('/comments/', data={
+            "issue": self.issue.pk,
+            "author": self.project_contributor.pk,
+            "description": "null description"
+        })
+
+        self.assertEqual(response.status_code, 403, response.json())
+
+        # create comment from non contributor user
+        self.client.force_login(self.random_user)
+
+        response = self.client.post('/comments/', data={
+            "issue": self.issue.pk,
+            "author": self.random_user.pk,
+            "description": "null description"
+        })
+
+        self.assertEqual(response.status_code, 403, response.json())
+
+    def test_create_comment_for_other_user(self):
+
+        self.client.force_login(self.project_author)
+
+        response = self.client.post('/comments/', data={
+            "issue": self.issue.pk,
+            "author": self.project_contributor.pk,
+            "description": "null description"
+        })
+
+        self.assertEqual(response.status_code, 403, response.json())
+
+    # RETREIVE
+
+    def test_get_comment_from_project_author(self):
+
+        self.client.force_login(self.project_author)
+
+        response = self.client.get("/comments/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['count'], 1)
+
+        response = self.client.get("/comments/1/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['description'], "useless comment, for testing purpose...", response.json())
+
+    def test_get_comment_from_project_contributor(self):
+
+        self.client.force_login(self.project_contributor)
+
+        response = self.client.get("/comments/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['count'], 1)
+
+        response = self.client.get("/comments/1/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['description'], "useless comment, for testing purpose...", response.json())
+
+    def test_get_comment_from_unauthorized_user(self):
+
+        # get comments from non authenticated user
+        response = self.client.get("/comments/")
+        self.assertEqual(response.status_code, 403)
+
+        response = self.client.get("/comments/1/")
+        self.assertEqual(response.status_code, 403)
+
+        # get comments from user who is not a project contributor
+        self.client.force_login(self.random_user)
+        response = self.client.get("/comments/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['count'], 0)
+
+        response = self.client.get("/comments/1/")
+
+        self.assertEqual(response.status_code, 404)
+
     # UPDATE
+
+    def test_update_comment(self):
+        pass
+
     # DELETE

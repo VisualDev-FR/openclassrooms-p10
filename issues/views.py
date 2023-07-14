@@ -16,7 +16,7 @@ class IssuesPermission(permissions.BasePermission):
         create_for_himself = str(user.pk) == author_id
 
         if request.method in ["GET", "PATCH", "DELETE"]:
-            # will be handled in IsAuthorOrContributor.has_object_permission() or in IssueViewSet.get_queryset()
+            # will be handled in IssuesPermission.has_object_permission() or in IssueViewSet.get_queryset()
             return True
 
         if request.method == "POST":
@@ -38,13 +38,44 @@ class IssuesPermission(permissions.BasePermission):
 
 class CommentPermission(permissions.BasePermission):
 
-    # TODO: CommentPermission.has_permission()
     def has_permission(self, request, view):
-        return super().has_permission(request, view)
 
-    # TODO: CommentPermission.has_object_permission()
-    def has_object_permission(self, request, view, obj):
-        return super().has_object_permission(request, view, obj)
+        issue_id = request.data.get("issue")
+        issue = Issue.objects.filter(pk=issue_id)
+
+        if not issue.exists():
+            # will be handled by serializer validators
+            return True
+
+        project_id = issue[0].project.pk
+
+        user = request.user
+        user_is_contributor = Contributor.is_contributor(user.pk, project_id)
+
+        author_id = request.data.get("author")
+        create_for_himself = str(user.pk) == author_id
+
+        if request.method in ["GET", "PATCH", "DELETE"]:
+            # will be handled in CommentPermission.has_object_permission() or in CommentViewset.get_queryset()
+            return True
+
+        if request.method == "POST":
+            return user_is_contributor and create_for_himself
+
+        # any request out of CRUD will fail
+        return False
+
+    def has_object_permission(self, request, view, comment: Comment):
+
+        project_id = comment.issue.project.pk
+
+        user_is_contributor = Contributor.is_contributor(user_id=request.user.pk, project_id=project_id)
+        user_is_author = comment.author.pk == request.user.pk
+
+        if request.method in permissions.SAFE_METHODS:
+            return user_is_contributor
+        else:
+            return user_is_author
 
 
 class IssueViewSet(viewsets.ModelViewSet):
@@ -58,9 +89,10 @@ class IssueViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
 
-        user = self.request.user
-        contributor_projects = Contributor.objects.filter(user=user).values_list("project_id", flat=True)
-        self.queryset = Issue.objects.filter(project_id__in=contributor_projects)
+        user_accessible_projects = Contributor.get_user_projects(self.request.user.pk)
+        user_accessible_issues = Issue.objects.filter(project_id__in=user_accessible_projects)
+
+        self.queryset = user_accessible_issues
 
         title = self.request.GET.get("title", None)
 
@@ -79,6 +111,12 @@ class CommentViewset(viewsets.ModelViewSet):
         CommentPermission
     ]
 
-    # TODO: CommentViewset.get_queryset()
     def get_queryset(self):
-        return super().get_queryset()
+
+        user_accessible_projects = Contributor.get_user_projects(self.request.user.pk)
+        user_accessible_issues = Issue.objects.filter(project_id__in=user_accessible_projects)
+        user_accessible_comments = Comment.objects.filter(issue_id__in=user_accessible_issues)
+
+        self.queryset = user_accessible_comments
+
+        return self.queryset.order_by("created_time")
