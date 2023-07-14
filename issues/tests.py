@@ -202,6 +202,44 @@ class TestIssue(APITestCase):
         self.assertEqual(response.status_code, 400, response.json())
         self.assertEqual(Issue.objects.count(), 1)
 
+    def test_create_issue_with_invalid_data(self):
+
+        self.client.force_login(self.author)
+
+        # create issue with invalid tag
+        response = self.client.post("/issues/", data={
+            "tag": "invalid_tag",
+            "title": "fatal error",
+            "project": self.project.pk,
+            "author": self.author.pk,
+        })
+        self.assertEqual(response.status_code, 400, response.json())
+        self.assertEqual(response.json(), {'tag': ['"invalid_tag" is not a valid choice.']})
+
+        # create issue with invalid state
+        response = self.client.post("/issues/", data={
+            "tag": "BUG",
+            "state": "invalid_state",
+            "title": "fatal error",
+            "project": self.project.pk,
+            "author": self.author.pk,
+        })
+        self.assertEqual(response.status_code, 400, response.json())
+        self.assertEqual(response.json(), {'state': ['"invalid_state" is not a valid choice.']})
+
+        # create issue with invalid priority
+        response = self.client.post("/issues/", data={
+            "tag": "BUG",
+            "priority": "invalid_priority",
+            "title": "fatal error",
+            "project": self.project.pk,
+            "author": self.author.pk,
+        })
+        self.assertEqual(response.status_code, 400, response.json())
+        self.assertEqual(response.json(), {'priority': ['"invalid_priority" is not a valid choice.']})
+
+        self.assertEqual(Issue.objects.count(), 1)
+
     # RETREIVE
     def test_get_issue_from_author(self):
 
@@ -353,8 +391,7 @@ class TestIssue(APITestCase):
 
         self.client.force_login(self.author)
 
-        # update issue author
-
+        # update author
         Contributor.objects.create(
             user=self.non_author,
             project=self.project
@@ -365,10 +402,9 @@ class TestIssue(APITestCase):
         })
 
         self.assertEqual(response.status_code, 400, response.json())
-        self.assertEqual(response.json(), {'non_field_errors': ['the author of an issue cant be modified']}, response.json())
+        self.assertEqual(response.json(), {'author': ['update the author of an issue is not allowed']})
 
-        # update issue project
-
+        # update project
         new_project = Project.objects.create(
             description="new_project",
             type="BACK",
@@ -380,7 +416,7 @@ class TestIssue(APITestCase):
         })
 
         self.assertEqual(response.status_code, 400, response.json())
-        self.assertEqual(response.json(), {'non_field_errors': ['the project of an issue cant be modified']}, response.json())
+        self.assertEqual(response.json(), {'project': ['update the project of an issue is not allowed']})
 
         updated_issue = Issue.objects.get(pk=1)
         self.assertEqual(updated_issue.author.pk, self.author.pk)
