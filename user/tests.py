@@ -1,6 +1,8 @@
 from rest_framework.test import APITestCase
 from user.models import SoftdeskUser
 
+PASSWORD = "password"
+
 
 class TestSoftdeskUser(APITestCase):
 
@@ -60,3 +62,34 @@ class TestSoftdeskUser(APITestCase):
 
     # TODO: test UPDATE TestSoftdeskUser
     # TODO: test DELETE TestSoftdeskUser
+
+
+class TestAuthentification(APITestCase):
+
+    def setUp(self) -> None:
+
+        self.user = SoftdeskUser.objects.create_user(
+            username="user",
+            password=PASSWORD,
+            age=27,
+        )
+
+    def test_get_access_token_with_valid_credential(self):
+
+        response = self.client.post("/api/token/", data={
+            "username": self.user.username,
+            "password": PASSWORD,
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("access", response.json())
+        self.assertIn("refresh", response.json())
+
+    def test_get_access_token_with_invalid_credential(self):
+
+        response = self.client.post("/api/token/", data={
+            "username": self.user.username,
+            "password": "invalid_password",
+        })
+
+        self.assertEqual(response.status_code, 401)
