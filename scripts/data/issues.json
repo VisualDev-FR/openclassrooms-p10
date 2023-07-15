@@ -1,0 +1,394 @@
+[
+    {
+        "tag": "BUG",
+        "state": "TODO",
+        "title": "Null Pointer Exception on Login Page",
+        "description": "When clicking the login button, a null pointer exception is thrown, preventing users from logging in.",
+        "priority": "HIGH"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "RELEASED",
+        "title": "Dark Mode Theme",
+        "description": "Implement a new dark mode theme option for the application.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "TASK",
+        "state": "IN_WORK",
+        "title": "Refactor Database Schema",
+        "description": "Restructure the database schema to improve performance and simplify data retrieval.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "RELEASED",
+        "title": "Incorrect Calculation in Sales Report",
+        "description": "The sales report is displaying incorrect totals for some products.",
+        "priority": "HIGH"
+    },
+    {
+        "tag": "TASK",
+        "state": "TODO",
+        "title": "Add User Authentication",
+        "description": "Implement user authentication functionality to secure the application.",
+        "priority": "HIGH"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "IN_WORK",
+        "title": "Integration with Third-Party API",
+        "description": "Integrate the application with a third-party API to fetch real-time data.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "TODO",
+        "title": "Error in Email Validation",
+        "description": "The email validation logic is incorrectly marking some valid emails as invalid.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "RELEASED",
+        "title": "Export Data to CSV",
+        "description": "Add an option to export application data to CSV format for further analysis.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "TASK",
+        "state": "IN_WORK",
+        "title": "Improve User Interface",
+        "description": "Enhance the user interface to provide a more intuitive and user-friendly experience.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "BUG",
+        "state": "RELEASED",
+        "title": "Incorrect Sorting in Product List",
+        "description": "The product list is not sorted correctly based on the specified sorting criteria.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "TODO",
+        "title": "Error in Payment Processing",
+        "description": "Some payments are not being processed correctly, leading to incomplete transactions.",
+        "priority": "HIGH"
+    },
+    {
+        "tag": "TASK",
+        "state": "RELEASED",
+        "title": "Implement Localization Support",
+        "description": "Add support for multiple languages and implement localization in the application.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "IN_WORK",
+        "title": "Advanced Search Functionality",
+        "description": "Enhance the search functionality to provide advanced filtering options and improve search accuracy.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "TODO",
+        "title": "Image Upload Error",
+        "description": "Users encounter an error when uploading images to their profiles.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "RELEASED",
+        "title": "Social Media Sharing Integration",
+        "description": "Integrate social media sharing options to allow users to share content from the application.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "TASK",
+        "state": "IN_WORK",
+        "title": "Optimize Database Queries",
+        "description": "Review and optimize the existing database queries for improved performance.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "RELEASED",
+        "title": "Incorrect Calculation in Pricing Module",
+        "description": "The pricing module is producing incorrect calculations for certain products.",
+        "priority": "HIGH"
+    },
+    {
+        "tag": "TASK",
+        "state": "TODO",
+        "title": "Implement User Roles and Permissions",
+        "description": "Define user roles and implement permission-based access control in the application.",
+        "priority": "HIGH"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "IN_WORK",
+        "title": "Real-Time Chat Functionality",
+        "description": "Develop a real-time chat feature to enable instant communication between users.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "TODO",
+        "title": "Error in Data Export",
+        "description": "Exported data is missing certain fields and not formatted correctly.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "RELEASED",
+        "title": "Integration with Payment Gateway",
+        "description": "Integrate the application with a payment gateway to facilitate online transactions.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "TASK",
+        "state": "IN_WORK",
+        "title": "Improve Performance of Image Upload",
+        "description": "Optimize the image upload process to reduce upload time and improve performance.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "BUG",
+        "state": "RELEASED",
+        "title": "Incorrect Calculation in Inventory Management",
+        "description": "The inventory management system is miscalculating stock levels for some products.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "TODO",
+        "title": "Error in Password Reset Functionality",
+        "description": "Users are unable to reset their passwords due to an error in the password reset feature.",
+        "priority": "HIGH"
+    },
+    {
+        "tag": "TASK",
+        "state": "RELEASED",
+        "title": "Implement Email Notifications",
+        "description": "Develop and implement email notification system for important events and updates.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "IN_WORK",
+        "title": "Integration with Google Maps API",
+        "description": "Integrate Google Maps API to provide location-based services in the application.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "TODO",
+        "title": "Error in Report Generation",
+        "description": "Generating reports for a specific date range produces inaccurate results.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "RELEASED",
+        "title": "Multiple User Account Support",
+        "description": "Allow users to create and manage multiple accounts within the application.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "TASK",
+        "state": "IN_WORK",
+        "title": "Code Documentation",
+        "description": "Document the codebase to improve code maintainability and facilitate future development.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "RELEASED",
+        "title": "Error in Discount Calculation",
+        "description": "The discount calculation logic is not applied correctly for certain products.",
+        "priority": "HIGH"
+    },
+    {
+        "tag": "TASK",
+        "state": "TODO",
+        "title": "Implement Single Sign-On",
+        "description": "Integrate single sign-on functionality to allow users to log in with their existing credentials.",
+        "priority": "HIGH"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "IN_WORK",
+        "title": "Image Cropping Functionality",
+        "description": "Implement image cropping feature to allow users to adjust and crop uploaded images.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "TODO",
+        "title": "Error in Data Import",
+        "description": "Imported data from external sources is not being processed correctly and causing data inconsistencies.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "RELEASED",
+        "title": "Advanced Analytics Dashboard",
+        "description": "Develop a comprehensive analytics dashboard to visualize key performance indicators and trends.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "TASK",
+        "state": "IN_WORK",
+        "title": "Improve Error Handling",
+        "description": "Enhance the error handling mechanism to provide more informative and user-friendly error messages.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "BUG",
+        "state": "RELEASED",
+        "title": "Error in Customer Registration",
+        "description": "Some customers are unable to register due to an error in the registration process.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "TASK",
+        "state": "TODO",
+        "title": "Implement Data Backup Mechanism",
+        "description": "Develop a system to automatically backup application data at regular intervals.",
+        "priority": "HIGH"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "IN_WORK",
+        "title": "Integration with Social Login APIs",
+        "description": "Allow users to log in using their social media accounts such as Facebook, Google, etc.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "TODO",
+        "title": "Error in Checkout Process",
+        "description": "Users encounter an error when trying to complete the checkout process.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "RELEASED",
+        "title": "Mobile App Integration",
+        "description": "Develop mobile applications for iOS and Android platforms and integrate them with the existing backend.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "TASK",
+        "state": "IN_WORK",
+        "title": "Improve Data Validation",
+        "description": "Enhance the data validation mechanism to ensure data integrity and prevent data corruption.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "RELEASED",
+        "title": "Error in Order Processing",
+        "description": "Some orders are not being processed correctly, resulting in delayed or missing shipments.",
+        "priority": "HIGH"
+    },
+    {
+        "tag": "BUG",
+        "state": "TODO",
+        "title": "Error in Image Rendering",
+        "description": "Images are not rendering correctly in certain browsers or devices.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "RELEASED",
+        "title": "Integration with Email Marketing Services",
+        "description": "Integrate the application with email marketing services for targeted email campaigns.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "TASK",
+        "state": "IN_WORK",
+        "title": "Code Refactoring for Performance Optimization",
+        "description": "Refactor the codebase to optimize performance and reduce resource consumption.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "TODO",
+        "title": "Error in User Profile Editing",
+        "description": "Users are unable to edit their profiles due to an error in the profile editing feature.",
+        "priority": "HIGH"
+    },
+    {
+        "tag": "TASK",
+        "state": "RELEASED",
+        "title": "Implement User Activity Logging",
+        "description": "Capture and log user activity for auditing and analysis purposes.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "IN_WORK",
+        "title": "Integration with SMS Notification Service",
+        "description": "Integrate SMS notification service to send important updates and notifications to users.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "TODO",
+        "title": "Error in Search Functionality",
+        "description": "Some search queries do not return accurate results or fail to find relevant content.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "RELEASED",
+        "title": "Data Import from Excel Files",
+        "description": "Implement the ability to import data from Excel files into the application.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "TASK",
+        "state": "IN_WORK",
+        "title": "Implement Caching Mechanism",
+        "description": "Introduce a caching mechanism to store and retrieve frequently accessed data for improved performance.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "BUG",
+        "state": "RELEASED",
+        "title": "Error in Credit Card Validation",
+        "description": "The credit card validation logic is incorrectly rejecting some valid credit cards.",
+        "priority": "HIGH"
+    },
+    {
+        "tag": "BUG",
+        "state": "TODO",
+        "title": "Error in API Response",
+        "description": "The API responses are occasionally returning incorrect or inconsistent data.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "FEATURE",
+        "state": "RELEASED",
+        "title": "Integration with CRM System",
+        "description": "Integrate the application with a customer relationship management (CRM) system for streamlined customer management.",
+        "priority": "MEDIUM"
+    },
+    {
+        "tag": "TASK",
+        "state": "IN_WORK",
+        "title": "Improve Password Security",
+        "description": "Enhance password security measures, including password encryption and complexity requirements.",
+        "priority": "LOW"
+    },
+    {
+        "tag": "BUG",
+        "state": "TODO",
+        "title": "Error in Email Sending",
+        "description": "Some emails are not being sent successfully, resulting in missed notifications.",
+        "priority": "HIGH"
+    }
+]
