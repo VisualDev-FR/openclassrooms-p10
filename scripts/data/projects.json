@@ -1,0 +1,82 @@
+[
+    {
+        "type": "FRONT",
+        "description": "Chatify"
+    },
+    {
+        "type": "BACK",
+        "description": "TaskMaster"
+    },
+    {
+        "type": "IOS",
+        "description": "EcoEats"
+    },
+    {
+        "type": "ANDROID",
+        "description": "FitTrack"
+    },
+    {
+        "type": "FRONT",
+        "description": "Eventify"
+    },
+    {
+        "type": "BACK",
+        "description": "Bookshelf"
+    },
+    {
+        "type": "IOS",
+        "description": "TravelX"
+    },
+    {
+        "type": "ANDROID",
+        "description": "FoodPal"
+    },
+    {
+        "type": "FRONT",
+        "description": "Shopify"
+    },
+    {
+        "type": "BACK",
+        "description": "HealthTrack"
+    },
+    {
+        "type": "IOS",
+        "description": "GymBuddy"
+    },
+    {
+        "type": "ANDROID",
+        "description": "MusicMix"
+    },
+    {
+        "type": "FRONT",
+        "description": "Artfolio"
+    },
+    {
+        "type": "BACK",
+        "description": "CodeScribe"
+    },
+    {
+        "type": "IOS",
+        "description": "SnapChef"
+    },
+    {
+        "type": "ANDROID",
+        "description": "FitConnect"
+    },
+    {
+        "type": "FRONT",
+        "description": "PortfolioX"
+    },
+    {
+        "type": "BACK",
+        "description": "TaskHub"
+    },
+    {
+        "type": "IOS",
+        "description": "Mindfulness"
+    },
+    {
+        "type": "ANDROID",
+        "description": "TripPlanner"
+    }
+]
