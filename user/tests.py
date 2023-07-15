@@ -34,6 +34,15 @@ class TestSoftdeskUser(APITestCase):
         self.assertEqual(response.status_code, 201, response.json())
         self.assertTrue(SoftdeskUser.objects.filter(username="new_user").exists())
 
+        response = self.client.post("/api/token/", data={
+            "username": "new_user",
+            "password": PASSWORD,
+        })
+
+        self.assertEqual(response.status_code, 200, response.json())
+        self.assertIn("access", response.json())
+        self.assertIn("refresh", response.json())
+
     def register_under_15_years_old(self):
 
         response = self.client.post("/register/", data={
