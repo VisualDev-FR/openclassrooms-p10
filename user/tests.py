@@ -1,67 +1,193 @@
 from rest_framework.test import APITestCase
 from user.models import SoftdeskUser
+from rest_framework_simplejwt.tokens import AccessToken
 
 PASSWORD = "password"
 
 
 class TestSoftdeskUser(APITestCase):
 
-    url = "/users/"
-
     def setUp(self) -> None:
+
         self.user = SoftdeskUser.objects.create_user(
+            can_data_be_shared=False,
+            can_be_contacted=False,
             username="admin",
-            password="password",
+            password=PASSWORD,
             age=27,
         )
 
-        self.client.force_login(self.user)
+    def authenticate(self, user):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {AccessToken.for_user(user)}')
 
-    def test_get_user(self):
-        """
-        Read the user created in TestSoftdeskUser.setUp()
-        """
-        response = self.client.get(self.url)
-        data = response.json()
+    # CREATE
+    def test_register(self):
 
-        self.assertEqual(response.status_code, 200, data)
-        self.assertEqual(data["count"], 1, data)
-        self.assertEqual(data["results"][0]["username"], "admin", data)
+        response = self.client.post("/register/", data={
+            "can_data_be_shared": False,
+            "can_be_contacted": False,
+            "username": "new_user",
+            "password": PASSWORD,
+            "age": 25,
+        })
+
+        self.assertEqual(response.status_code, 201, response.json())
+        self.assertTrue(SoftdeskUser.objects.filter(username="new_user").exists())
+
+    def register_under_15_years_old(self):
+
+        response = self.client.post("/register/", data={
+            "username": "new_user",
+            "password": PASSWORD,
+            "age": 12
+        })
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {'age': ['User must be at least 15 years old.']})
+
+    def register_with_missing_datas(self):
+
+        # register without username
+        response = self.client.post("/register/", data={
+            "password": PASSWORD,
+            "age": 12
+        })
+        self.assertEqual(response.status_code, 400)
+
+        # register without password
+        response = self.client.post("/register/", data={
+            "username": "new_user",
+            "age": 25
+        })
+        self.assertEqual(response.status_code, 400)
+
+        # register without age
+        response = self.client.post("/register/", data={
+            "username": "new_user",
+            "password": PASSWORD,
+        })
+        self.assertEqual(response.status_code, 400)
 
     def test_create_user(self):
-        """
-        Create a valid user and assert that response is correct, and data are correclty written in database
-        """
 
-        self.assertFalse(SoftdeskUser.objects.filter(username="new_user").exists())
-
-        response = self.client.post(self.url, data={
+        # create user from non authenticated user
+        response = self.client.post("/users/", data={
             "username": "new_user",
-            "password": "password",
-            "age": 15,
+            "password": PASSWORD,
+            "age": 25
+        })
+        self.assertEqual(response.status_code, 401)
+
+        # create user from authenticated user
+        self.authenticate(self.user)
+        response = self.client.post("/users/", data={
+            "username": "new_user",
+            "password": PASSWORD,
+            "age": 25
+        })
+        self.assertEqual(response.status_code, 405)
+
+    # RETREIVE
+    def test_get_users(self):
+
+        self.authenticate(self.user)
+
+        response = self.client.get("/users/")
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get("/users/1/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['username'], "admin")
+
+        self.assertEqual(len(response.json()), 5)
+        self.assertIn("can_be_contacted", response.json())
+        self.assertIn("can_data_be_shared", response.json())
+        self.assertIn("username", response.json())
+        self.assertIn("age", response.json())
+        self.assertIn("id", response.json())
+
+    def test_get_user_from_non_authenticated(self):
+
+        response = self.client.get("/users/")
+        self.assertEqual(response.status_code, 401)
+
+        response = self.client.get("/users/1/")
+        self.assertEqual(response.status_code, 401)
+
+    # UPDATE
+    def test_update_user(self):
+
+        self.authenticate(self.user)
+
+        response = self.client.patch("/users/1/", data={
+            "can_data_be_shared": True,
+            "can_be_contacted": True,
         })
 
-        self.assertIn(response.status_code, [200, 201], response.json())
-        self.assertNotEqual(SoftdeskUser.objects.get(username="new_user"), None)
+        updated_user: SoftdeskUser = SoftdeskUser.objects.get(pk=1)
 
-    def test_create_user_under_15_years_old(self):
-        """
-        Check that no user under 15 years old can be created
-        """
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(updated_user.can_data_be_shared, True)
+        self.assertEqual(updated_user.can_be_contacted, True)
 
-        self.assertFalse(SoftdeskUser.objects.filter(username="new_user").exists())
+    def test_update_user_from_unauthorized(self):
 
-        response = self.client.post(self.url, data={
-            "username": "new_user",
-            "password": "password",
-            "age": 12,
+        user: SoftdeskUser = SoftdeskUser.objects.create(
+            can_data_be_shared=False,
+            can_be_contacted=False,
+            username="new_user",
+            password=PASSWORD,
+            age=27,
+        )
+
+        # update user from non authenticated user
+        response = self.client.patch(f"/users/{user.pk}/", data={
+            "can_data_be_shared": True,
+            "can_be_contacted": True,
         })
+        self.assertEqual(response.status_code, 401)
 
-        self.assertEqual(response.status_code, 400, response.json())
-        self.assertFalse(SoftdeskUser.objects.filter(username="new_user").exists())
+        # update user from another user
+        self.authenticate(self.user)
+        response = self.client.patch(f"/users/{user.pk}/", data={
+            "can_data_be_shared": True,
+            "can_be_contacted": True,
+        })
+        self.assertEqual(response.status_code, 403)
 
-    # TODO: test UPDATE TestSoftdeskUser
-    # TODO: test DELETE TestSoftdeskUser
+        self.assertEqual(user.can_data_be_shared, False)
+        self.assertEqual(user.can_be_contacted, False)
+
+    # DELETE
+    def test_delete_user(self):
+
+        self.authenticate(self.user)
+
+        response = self.client.delete(f"/users/{self.user.pk}/")
+
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(SoftdeskUser.objects.filter(username=self.user.username).exists())
+
+    def test_delete_user_from_unauthorized(self):
+
+        user: SoftdeskUser = SoftdeskUser.objects.create(
+            can_data_be_shared=False,
+            can_be_contacted=False,
+            username="new_user",
+            password=PASSWORD,
+            age=27,
+        )
+
+        # update user from non authenticated user
+        response = self.client.delete(f"/users/{user.pk}/")
+        self.assertEqual(response.status_code, 401)
+
+        # update user from another user
+        self.authenticate(self.user)
+        response = self.client.patch(f"/users/{user.pk}/")
+        self.assertEqual(response.status_code, 403)
+
+        self.assertTrue(SoftdeskUser.objects.filter(pk=user.pk).exists())
 
 
 class TestAuthentification(APITestCase):

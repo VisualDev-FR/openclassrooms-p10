@@ -3,6 +3,7 @@ from issues.models import Issue, Comment
 from user.models import SoftdeskUser
 from projects.models import Project, Contributor
 from settings import settings
+from rest_framework_simplejwt.tokens import AccessToken
 
 
 class TestIssue(APITestCase):
@@ -50,17 +51,20 @@ class TestIssue(APITestCase):
                 author=self.author
             )
 
-        self.client.force_login(self.author)
+        self.authenticate(self.author)
 
         response = self.client.get("/issues/")
 
         self.assertEqual(Issue.objects.all().count(), PAGE_SIZE + 2)
         self.assertEqual(len(response.json()['results']), PAGE_SIZE)
 
+    def authenticate(self, user):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {AccessToken.for_user(user)}')
+
     # CREATE
     def test_create_minimal_issue(self):
 
-        self.client.force_login(self.author)
+        self.authenticate(self.author)
         response = self.client.post("/issues/", data={
             "tag": "BUG",
             "title": "fatal error",
@@ -73,7 +77,7 @@ class TestIssue(APITestCase):
 
     def test_create_multiple_issues_from_contributor(self):
 
-        self.client.force_login(self.non_author)
+        self.authenticate(self.non_author)
 
         Contributor.objects.create(
             project=self.project,
@@ -102,7 +106,7 @@ class TestIssue(APITestCase):
 
     def test_create_issue_with_missing_datas(self):
 
-        self.client.force_login(self.author)
+        self.authenticate(self.author)
 
         # create issue without author
         response = self.client.post("/issues/", data={
@@ -140,7 +144,7 @@ class TestIssue(APITestCase):
 
     def test_create_issue_from_contributor(self):
 
-        self.client.force_login(self.non_author)
+        self.authenticate(self.non_author)
 
         Contributor.objects.create(
             project=self.project,
@@ -167,11 +171,11 @@ class TestIssue(APITestCase):
             "author": self.author.pk,
         })
 
-        self.assertEqual(response.status_code, 403, response.json())
+        self.assertEqual(response.status_code, 401, response.json())
         self.assertEqual(Issue.objects.count(), 1)
 
         # create from a user who is not a project contributor
-        self.client.force_login(self.non_author)
+        self.authenticate(self.non_author)
 
         response = self.client.post("/issues/", data={
             "tag": "BUG",
@@ -185,7 +189,7 @@ class TestIssue(APITestCase):
 
     def test_create_issue_for_other_user(self):
 
-        self.client.force_login(self.author)
+        self.authenticate(self.author)
 
         Contributor.objects.create(
             user=self.non_author,
@@ -205,7 +209,7 @@ class TestIssue(APITestCase):
 
     def test_create_issue_with_assigned_contributor(self):
 
-        self.client.force_login(self.author)
+        self.authenticate(self.author)
 
         Contributor.objects.create(
             project=self.project,
@@ -238,7 +242,7 @@ class TestIssue(APITestCase):
 
     def test_create_issue_with_assigned_non_contributor(self):
 
-        self.client.force_login(self.author)
+        self.authenticate(self.author)
 
         # assignate an user who is not registered as a project contributor
         response = self.client.post("/issues/", data={
@@ -254,7 +258,7 @@ class TestIssue(APITestCase):
 
     def test_create_issue_with_invalid_data(self):
 
-        self.client.force_login(self.author)
+        self.authenticate(self.author)
 
         # create issue with invalid tag
         response = self.client.post("/issues/", data={
@@ -293,7 +297,7 @@ class TestIssue(APITestCase):
     # RETREIVE
     def test_get_issue_from_author(self):
 
-        self.client.force_login(self.author)
+        self.authenticate(self.author)
 
         response = self.client.get("/issues/")
 
@@ -307,7 +311,7 @@ class TestIssue(APITestCase):
 
     def test_get_issue_from_contributor(self):
 
-        self.client.force_login(self.non_author)
+        self.authenticate(self.non_author)
 
         Contributor.objects.create(
             project=self.project,
@@ -328,13 +332,13 @@ class TestIssue(APITestCase):
 
         # retreive from non authenticated user
         response = self.client.get("/issues/")
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
         response = self.client.get("/issues/1/")
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
         # retreive from user who is not a project contributor
-        self.client.force_login(self.non_author)
+        self.authenticate(self.non_author)
 
         response = self.client.get("/issues/")
         self.assertEqual(response.status_code, 200)
@@ -346,7 +350,7 @@ class TestIssue(APITestCase):
     # UPDATE
     def test_update_issue(self):
 
-        self.client.force_login(self.author)
+        self.authenticate(self.author)
 
         response = self.client.patch("/issues/1/", data={
             "tag": "BUG",
@@ -369,10 +373,10 @@ class TestIssue(APITestCase):
             "title": "BUG Issue"
         })
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
         # update from non contributor / non author user
-        self.client.force_login(self.non_author)
+        self.authenticate(self.non_author)
 
         response = self.client.patch("/issues/1/", data={
             "tag": "BUG",
@@ -389,7 +393,7 @@ class TestIssue(APITestCase):
     def test_update_issue_from_contributor(self):
 
         # register user as a project contributor who is not the issue author
-        self.client.force_login(self.non_author)
+        self.authenticate(self.non_author)
 
         Contributor.objects.create(
             user=self.non_author,
@@ -410,7 +414,7 @@ class TestIssue(APITestCase):
 
     def test_update_issue_with_assigned_contributor(self):
 
-        self.client.force_login(self.author)
+        self.authenticate(self.author)
 
         Contributor.objects.create(
             user=self.non_author,
@@ -429,7 +433,7 @@ class TestIssue(APITestCase):
 
     def test_update_issue_with_assigned_non_contributor(self):
 
-        self.client.force_login(self.author)
+        self.authenticate(self.author)
 
         response = self.client.patch("/issues/1/", data={
             "assigned_user": self.non_author.pk
@@ -439,7 +443,7 @@ class TestIssue(APITestCase):
 
     def test_update_forbidden_datas(self):
 
-        self.client.force_login(self.author)
+        self.authenticate(self.author)
 
         # update author
         Contributor.objects.create(
@@ -475,7 +479,7 @@ class TestIssue(APITestCase):
     # DELETE
     def test_delete_issue(self):
 
-        self.client.force_login(self.author)
+        self.authenticate(self.author)
 
         response = self.client.delete("/issues/1/")
 
@@ -487,11 +491,11 @@ class TestIssue(APITestCase):
         # delete from non authenticated user
         response = self.client.delete("/issues/1/")
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
         self.assertEqual(Issue.objects.count(), 1)
 
         # delete from non author user
-        self.client.force_login(self.non_author)
+        self.authenticate(self.non_author)
 
         response = self.client.delete("/issues/1/")
 
@@ -501,7 +505,7 @@ class TestIssue(APITestCase):
     def test_delete_issue_from_contributor(self):
 
         # register user as a project contributor who is not the issue author
-        self.client.force_login(self.non_author)
+        self.authenticate(self.non_author)
 
         Contributor.objects.create(
             user=self.non_author,
@@ -564,6 +568,9 @@ class TestComment(APITestCase):
             description="useless comment, for testing purpose..."
         )
 
+    def authenticate(self, user):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {AccessToken.for_user(user)}')
+
     def test_pagination(self):
 
         PAGE_SIZE = settings.REST_FRAMEWORK['PAGE_SIZE']
@@ -575,7 +582,7 @@ class TestComment(APITestCase):
                 description=f"comment{i}"
             )
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         response = self.client.get("/comments/")
 
@@ -586,7 +593,7 @@ class TestComment(APITestCase):
 
     def test_create_minimal_comment(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         response = self.client.post('/comments/', data={
             "issue": self.issue.pk,
@@ -598,7 +605,7 @@ class TestComment(APITestCase):
 
     def test_create_comment_with_missing_datas(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         # create comment without issue
         response = self.client.post('/comments/', data={
@@ -626,7 +633,7 @@ class TestComment(APITestCase):
 
     def test_create_comment_from_contributor(self):
 
-        self.client.force_login(self.project_contributor)
+        self.authenticate(self.project_contributor)
 
         response = self.client.post('/comments/', data={
             "issue": self.issue.pk,
@@ -645,10 +652,10 @@ class TestComment(APITestCase):
             "description": "null description"
         })
 
-        self.assertEqual(response.status_code, 403, response.json())
+        self.assertEqual(response.status_code, 401, response.json())
 
         # create comment from non contributor user
-        self.client.force_login(self.random_user)
+        self.authenticate(self.random_user)
 
         response = self.client.post('/comments/', data={
             "issue": self.issue.pk,
@@ -660,7 +667,7 @@ class TestComment(APITestCase):
 
     def test_create_comment_for_other_user(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         response = self.client.post('/comments/', data={
             "issue": self.issue.pk,
@@ -674,7 +681,7 @@ class TestComment(APITestCase):
 
     def test_get_comment_from_project_author(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         response = self.client.get("/comments/")
 
@@ -688,7 +695,7 @@ class TestComment(APITestCase):
 
     def test_get_comment_from_project_contributor(self):
 
-        self.client.force_login(self.project_contributor)
+        self.authenticate(self.project_contributor)
 
         response = self.client.get("/comments/")
 
@@ -704,13 +711,13 @@ class TestComment(APITestCase):
 
         # get comments from non authenticated user
         response = self.client.get("/comments/")
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
         response = self.client.get("/comments/1/")
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
         # get comments from user who is not a project contributor
-        self.client.force_login(self.random_user)
+        self.authenticate(self.random_user)
         response = self.client.get("/comments/")
 
         self.assertEqual(response.status_code, 200)
@@ -724,7 +731,7 @@ class TestComment(APITestCase):
 
     def test_update_comment(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         response = self.client.patch("/comments/1/", data={
             "description": "updated description"
@@ -739,7 +746,7 @@ class TestComment(APITestCase):
     def test_update_comment_from_contributor(self):
 
         # login with a project contributor who is not the comment author
-        self.client.force_login(self.project_contributor)
+        self.authenticate(self.project_contributor)
 
         response = self.client.patch("/comments/1/", data={
             "description": "updated description"
@@ -756,10 +763,10 @@ class TestComment(APITestCase):
         response = self.client.patch("/comments/1/", data={
             "description": "updated description"
         })
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
         # update comments from user who is not a project contributor
-        self.client.force_login(self.random_user)
+        self.authenticate(self.random_user)
         response = self.client.patch("/comments/1/", data={
             "description": "updated description"
         })
@@ -771,7 +778,7 @@ class TestComment(APITestCase):
 
     def test_update_forbidden_datas(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         # update the associated issue
 
@@ -806,7 +813,7 @@ class TestComment(APITestCase):
 
     def test_delete_comment_from_author(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         response = self.client.delete("/comments/1/")
 
@@ -815,7 +822,7 @@ class TestComment(APITestCase):
 
     def test_delete_comment_from_non_author(self):
 
-        self.client.force_login(self.project_contributor)
+        self.authenticate(self.project_contributor)
 
         response = self.client.delete("/comments/1/")
 
@@ -826,10 +833,10 @@ class TestComment(APITestCase):
 
         # delete from non authenticated user
         response = self.client.delete("/comments/1/")
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
         # delete from a user who is not registered as a project contributor
-        self.client.force_login(self.random_user)
+        self.authenticate(self.random_user)
         response = self.client.delete("/comments/1/")
         self.assertEqual(response.status_code, 404)
 

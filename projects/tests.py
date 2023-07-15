@@ -1,4 +1,5 @@
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import AccessToken
 from user.models import SoftdeskUser
 from projects.models import Project, Contributor
 from settings import settings
@@ -37,6 +38,9 @@ class TestProject(APITestCase):
             user=self.project_contributor
         )
 
+    def authenticate(self, user):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {AccessToken.for_user(user)}')
+
     def test_pagination(self):
 
         PAGE_SIZE = settings.REST_FRAMEWORK['PAGE_SIZE']
@@ -48,7 +52,7 @@ class TestProject(APITestCase):
                 author=self.project_author
             )
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         response = self.client.get("/projects/")
 
@@ -58,7 +62,7 @@ class TestProject(APITestCase):
     # CREATE
     def test_create_project(self):
 
-        self.client.force_login(self.random_user)
+        self.authenticate(self.random_user)
 
         response = self.client.post("/projects/", data={
             "description": "new_project",
@@ -70,7 +74,7 @@ class TestProject(APITestCase):
 
     def test_create_project_without_author(self):
 
-        self.client.force_login(self.random_user)
+        self.authenticate(self.random_user)
 
         # create new project without specifiying author
         response = self.client.post("/projects/", data={
@@ -83,7 +87,7 @@ class TestProject(APITestCase):
 
     def test_create_project_with_invalid_type(self):
 
-        self.client.force_login(self.random_user)
+        self.authenticate(self.random_user)
 
         # create new project with invalid type
         response = self.client.post("/projects/", data={
@@ -97,7 +101,7 @@ class TestProject(APITestCase):
 
     def test_create_project_for_another_user(self):
 
-        self.client.force_login(self.random_user)
+        self.authenticate(self.random_user)
 
         # create new project
         response = self.client.post("/projects/", data={
@@ -114,12 +118,12 @@ class TestProject(APITestCase):
             "type": "FRONT",
             "author": self.random_user.pk
         })
-        self.assertEqual(response.status_code, 403, response.json())
+        self.assertEqual(response.status_code, 401, response.json())
 
     # RETREIVE
     def test_get_project_from_author(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         # get all projects
         response = self.client.get("/projects/")
@@ -132,7 +136,7 @@ class TestProject(APITestCase):
 
     def test_get_project_from_contributor(self):
 
-        self.client.force_login(self.project_contributor)
+        self.authenticate(self.project_contributor)
 
         # get all projects
         response = self.client.get("/projects/")
@@ -147,13 +151,13 @@ class TestProject(APITestCase):
 
         # get projects from non authenticated user
         response = self.client.get("/projects/")
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
         response = self.client.get("/projects/1/")
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
         # get projects from a user who is not a project contributor
-        self.client.force_login(self.random_user)
+        self.authenticate(self.random_user)
         response = self.client.get("/projects/")
 
         self.assertEqual(response.status_code, 200)
@@ -165,7 +169,7 @@ class TestProject(APITestCase):
     # UPDATE
     def test_update_project_from_author(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         response = self.client.patch("/projects/1/", data={
             "type": "BACK",
@@ -184,10 +188,10 @@ class TestProject(APITestCase):
             "type": "BACK",
         })
 
-        self.assertEqual(response.status_code, 403, response.json())
+        self.assertEqual(response.status_code, 401, response.json())
 
         # update project from contributor user
-        self.client.force_login(self.project_contributor)
+        self.authenticate(self.project_contributor)
         response = self.client.patch("/projects/1/", data={
             "type": "BACK",
         })
@@ -195,7 +199,7 @@ class TestProject(APITestCase):
         self.assertEqual(response.status_code, 403, response.json())
 
         # update project from non contributor user
-        self.client.force_login(self.random_user)
+        self.authenticate(self.random_user)
         response = self.client.patch("/projects/1/", data={
             "type": "BACK",
         })
@@ -204,7 +208,7 @@ class TestProject(APITestCase):
 
     def test_update_forbidden_datas(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         response = self.client.patch("/projects/1/", data={
             "author": self.random_user.pk,
@@ -215,7 +219,7 @@ class TestProject(APITestCase):
     # DELETE
     def test_delete_project_from_author(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         # delete the desired project
         response = self.client.delete("/projects/1/")
@@ -226,15 +230,15 @@ class TestProject(APITestCase):
 
         # delete the from non authenticated user
         response = self.client.delete("/projects/1/")
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
         # delete the from contributor user
-        self.client.force_login(self.project_contributor)
+        self.authenticate(self.project_contributor)
         response = self.client.delete("/projects/1/")
         self.assertEqual(response.status_code, 403)
 
         # delete the from non contributor user
-        self.client.force_login(self.random_user)
+        self.authenticate(self.random_user)
         response = self.client.delete("/projects/1/")
         self.assertEqual(response.status_code, 404)
 
@@ -285,17 +289,20 @@ class TestContributor(APITestCase):
                 author=self.project_author
             )
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         response = self.client.get("/contributors/")
 
         self.assertEqual(Contributor.objects.all().count(), PAGE_SIZE + 3)
         self.assertEqual(len(response.json()['results']), PAGE_SIZE)
 
+    def authenticate(self, user):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {AccessToken.for_user(user)}')
+
     # CREATE
     def test_create_contributor_from_project_author(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         response = self.client.post("/contributors/", data={
             "user": self.random_user.pk,
@@ -306,7 +313,7 @@ class TestContributor(APITestCase):
 
     def test_create_existing_contributor(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         response = self.client.post("/contributors/", data={
             "user": self.project_contributor.pk,
@@ -323,10 +330,10 @@ class TestContributor(APITestCase):
             "user": self.random_user.pk,
             "project": self.project.pk,
         })
-        self.assertEqual(response.status_code, 403, response.json())
+        self.assertEqual(response.status_code, 401, response.json())
 
         # create user from project contributor
-        self.client.force_login(self.project_contributor)
+        self.authenticate(self.project_contributor)
         response = self.client.post("/contributors/", data={
             "user": self.random_user.pk,
             "project": self.project.pk,
@@ -334,7 +341,7 @@ class TestContributor(APITestCase):
         self.assertEqual(response.status_code, 403, response.json())
 
         # create user from non contributor user
-        self.client.force_login(self.random_user)
+        self.authenticate(self.random_user)
         response = self.client.post("/contributors/", data={
             "user": self.random_user.pk,
             "project": self.project.pk,
@@ -343,7 +350,7 @@ class TestContributor(APITestCase):
 
     def test_create_contributor_with_missing_datas(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         # create contributor without project
         response = self.client.post("/contributors/", data={
@@ -362,7 +369,7 @@ class TestContributor(APITestCase):
     # RETREIVE
     def test_get_contributor_from_author(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         response = self.client.get("/contributors/")
         self.assertEqual(response.status_code, 200)
@@ -373,7 +380,7 @@ class TestContributor(APITestCase):
 
     def test_get_contributor_from_contributor(self):
 
-        self.client.force_login(self.project_contributor)
+        self.authenticate(self.project_contributor)
 
         response = self.client.get("/contributors/")
         self.assertEqual(response.status_code, 200)
@@ -386,13 +393,13 @@ class TestContributor(APITestCase):
 
         # get contributors from non authenticated user
         response = self.client.get("/contributors/")
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
         response = self.client.get("/contributors/1/")
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
         # get contributors from non contributor user
-        self.client.force_login(self.random_user)
+        self.authenticate(self.random_user)
 
         response = self.client.get("/contributors/")
         self.assertEqual(response.status_code, 200)
@@ -408,24 +415,24 @@ class TestContributor(APITestCase):
         response = self.client.post("/contributors/1/", data={
             "user": self.random_user.pk
         })
-        self.assertEqual(response.status_code, 403, response.json())
+        self.assertEqual(response.status_code, 401, response.json())
 
         # update from a non contributor user
-        self.client.force_login(self.random_user)
+        self.authenticate(self.random_user)
         response = self.client.post("/contributors/1/", data={
             "user": self.random_user.pk
         })
         self.assertEqual(response.status_code, 405, response.json())
 
         # update from a contributor user
-        self.client.force_login(self.project_contributor)
+        self.authenticate(self.project_contributor)
         response = self.client.post("/contributors/1/", data={
             "user": self.random_user.pk
         })
         self.assertEqual(response.status_code, 405, response.json())
 
         # update from a the project author
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
         response = self.client.post("/contributors/1/", data={
             "user": self.random_user.pk
         })
@@ -434,7 +441,7 @@ class TestContributor(APITestCase):
     # DELETE
     def test_delete_contributor_from_author(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         response = self.client.delete("/contributors/1/")
 
@@ -445,16 +452,16 @@ class TestContributor(APITestCase):
 
         # delete from a non authenticated user
         response = self.client.delete("/contributors/1/")
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
         # delete from a contributor user
-        self.client.force_login(self.project_contributor)
+        self.authenticate(self.project_contributor)
 
         response = self.client.delete("/contributors/1/")
         self.assertEqual(response.status_code, 403)
 
         # delete from a non contributor user
-        self.client.force_login(self.project_contributor)
+        self.authenticate(self.project_contributor)
 
         response = self.client.delete("/contributors/1/")
         self.assertEqual(response.status_code, 403)
@@ -482,9 +489,12 @@ class TestProjectsIntegration(APITestCase):
             age=27,
         )
 
+    def authenticate(self, user):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {AccessToken.for_user(user)}')
+
     def test_project(self):
 
-        self.client.force_login(self.project_author)
+        self.authenticate(self.project_author)
 
         # retreive the current user_id
         user = self.client.get(f"/users/?username={self.project_author.username}")
