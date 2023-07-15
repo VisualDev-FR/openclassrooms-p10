@@ -49,24 +49,17 @@ class CommentSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         return super().to_representation(instance)
 
-    def validate(self, data: dict):
-
-        issue_changed = False
-        author_changed = False
-
-        if self.instance and data.get("issue"):
-            issue_changed = self.instance.issue.pk != data.get("issue")
-
-        if self.instance and data.get("author"):
-            author_changed = self.instance.author.pk != data.get("author")
-
-        if issue_changed:
+    def validate_issue(self, value):
+        if self.instance:
             raise serializers.ValidationError("the issue of a comment cant be modified")
+        else:
+            return value
 
-        if author_changed:
+    def validate_author(self, value):
+        if self.instance:
             raise serializers.ValidationError("the author of a comment cant be modified")
-
-        return data
+        else:
+            return value
 
     class Meta:
         model = Comment

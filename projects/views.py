@@ -105,6 +105,15 @@ class ContributorViewSet(viewsets.ModelViewSet):
 
         self.queryset = user_accessible_contributors
 
+        user = self.request.GET.get("user")
+        project = self.request.GET.get("project")
+
+        if user:
+            self.queryset = self.queryset.filter(user_id=user)
+
+        if project:
+            self.queryset = self.queryset.filter(project_id=project)
+
         return self.queryset.order_by("created_time")
 
     def update(self, request, *args, **kwargs):

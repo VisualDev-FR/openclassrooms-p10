@@ -13,6 +13,7 @@ class SoftdeskUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = SoftdeskUser
         fields = [
+            'id',
             'username',
             'age',
             'can_be_contacted',

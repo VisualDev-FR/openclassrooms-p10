@@ -17,7 +17,7 @@ Including another URLconf
 from django.urls import include, path
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from user.views import UserViewSet
+from user.views import UserViewSet, RegisterView
 from projects.views import ProjectViewSet, ContributorViewSet
 from issues.views import IssueViewSet, CommentViewset
 
@@ -32,6 +32,7 @@ router.register(r'comments', CommentViewset)
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
     path('', include(router.urls)),
+    path('register/', RegisterView.as_view(), name="register"),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
