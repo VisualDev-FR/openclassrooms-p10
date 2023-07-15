@@ -58,8 +58,22 @@ L'authentification à l'API se fait au travers de [djangorestframework-simplejwt
 
 L'obtention d'un access token se fait avec la requete suivante :
 
-``` json
 ```
+POST http://127.0.0.1:8000/api/token/
+{
+    "username": "username",
+    "password": "password"
+}
+```
+Response:
+```
+{
+    "refresh": "eyJhbGc...",
+    "access": "eyJhbGci..."
+}
+```
+
+Le token reçu devra être passé dans les en-tête des requetes.
 
 ## Lancement des tests
 
@@ -71,4 +85,10 @@ l'ensemble des tests disponible peuvent être lancés en suivant les étapes sui
 
 ```bash
 python ./manage.py test
+```
+
+## Generation de données aleatoires
+
+```
+python -W ignore ./manage.py runscript dummy_data
 ```
