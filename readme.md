@@ -15,10 +15,10 @@ Ce projet consiste à implémenter une API [Django Rest Framework](https://www.d
 
 Une base de donnée ```db.sqlite3``` est incluse au dépôt et contient des données générées aléatoirement tels que :
 
-* un ensemble d'utilisateurs (mot de passe par défaut : dummypassword)
-* un ensemble de projets et de contributeur (chaque utilisateur contribue à au moins un projet)
-* un ensemble d'issues (chaque projet contient au moins une issue)
-* un ensemble de comments (chaque issue contient au moins un comment, et chaque utilisateur est l'autheur d'au moins un comment)
+* un ensemble d'utilisateurs (mot de passe par défaut : password)
+* un ensemble de projets et de contributeur
+* un ensemble d'issues
+* un ensemble de comments
 
 ## Configuration de l'environnement virtuel :
 
