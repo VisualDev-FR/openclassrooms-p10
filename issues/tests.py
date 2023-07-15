@@ -71,6 +71,35 @@ class TestIssue(APITestCase):
         self.assertEqual(response.status_code, 201, response.json())
         self.assertEqual(Issue.objects.count(), 2)
 
+    def test_create_multiple_issues_from_contributor(self):
+
+        self.client.force_login(self.non_author)
+
+        Contributor.objects.create(
+            project=self.project,
+            user=self.non_author
+        )
+
+        response = self.client.post("/issues/", data={
+            "tag": "BUG",
+            "title": "issue1",
+            "project": self.project.pk,
+            "author": self.non_author.pk,
+        })
+
+        self.assertEqual(response.status_code, 201, response.json())
+        self.assertTrue(Issue.objects.filter(title="issue1").exists())
+
+        response = self.client.post("/issues/", data={
+            "tag": "BUG",
+            "title": "issue2",
+            "project": self.project.pk,
+            "author": self.non_author.pk,
+        })
+
+        self.assertEqual(response.status_code, 201, response.json())
+        self.assertTrue(Issue.objects.filter(title="issue2").exists())
+
     def test_create_issue_with_missing_datas(self):
 
         self.client.force_login(self.author)
@@ -148,7 +177,7 @@ class TestIssue(APITestCase):
             "tag": "BUG",
             "title": "fatal error",
             "project": self.project.pk,
-            "author": self.author.pk,
+            "author": self.non_author.pk,
         })
 
         self.assertEqual(response.status_code, 403, response.json())

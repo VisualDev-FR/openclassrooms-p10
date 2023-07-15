@@ -460,6 +460,71 @@ class TestContributor(APITestCase):
         self.assertEqual(response.status_code, 403)
 
 
-# TODO: TestProjectsIntegration
 class TestProjectsIntegration(APITestCase):
-    pass
+
+    def setUp(self) -> None:
+
+        self.project_author = SoftdeskUser.objects.create_user(
+            username="end_user",
+            password="password",
+            age=27,
+        )
+
+        self.project_contributor_1 = SoftdeskUser.objects.create_user(
+            username="project_contributor_1",
+            password="password",
+            age=27,
+        )
+
+        self.project_contributor_2 = SoftdeskUser.objects.create_user(
+            username="project_contributor_2",
+            password="password",
+            age=27,
+        )
+
+    def test_project(self):
+
+        self.client.force_login(self.project_author)
+
+        # retreive the current user_id
+        user = self.client.get(f"/users/?username={self.project_author.username}")
+        user_id = user.json()['results'][0]["id"]
+
+        # create a new project
+        project = self.client.post("/projects/", data={
+            "description": "my_project",
+            "author": user_id,
+            "type": "FRONT"
+        })
+
+        project_id = project.json()['id']
+        self.assertEqual(project_id, 1)
+
+        # retreive the project contributors
+        contributor_1 = self.client.get(f"/users/?username={self.project_contributor_1.username}").json()['results'][0]["id"]
+        contributor_2 = self.client.get(f"/users/?username={self.project_contributor_2.username}").json()['results'][0]["id"]
+
+        self.assertEqual(contributor_1, 2)
+        self.assertEqual(contributor_2, 3)
+
+        # register two new contributors
+        self.client.post("/contributors/", data={
+            "project": project_id,
+            "user": contributor_1
+        })
+
+        self.client.post("/contributors/", data={
+            "project": project_id,
+            "user": contributor_2
+        })
+
+        self.assertTrue(Contributor.objects.all().count(), 3)
+
+        # remove one contributor from the project
+        contributor_to_remove = self.client.get(f"/contributors/?user={contributor_2}&project={project_id}").json()["results"][0]["id"]
+        self.assertEqual(contributor_to_remove, 3)
+
+        response = self.client.delete(f"/contributors/{contributor_to_remove}/")
+
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(Contributor.objects.filter(pk=contributor_to_remove).exists())

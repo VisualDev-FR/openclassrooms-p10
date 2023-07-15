@@ -28,11 +28,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = [
-            'description',
-            'type',
-            'author',
-        ]
+        fields = "__all__"
 
 
 class ContributorSerializer(serializers.ModelSerializer):
@@ -56,12 +52,7 @@ class ContributorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Contributor
-        fields = [
-            'id',
-            'url',
-            'user',
-            'project',
-        ]
+        fields = "__all__"
         validators = [
             serializers.UniqueTogetherValidator(
                 queryset=Contributor.objects.all(),
