@@ -1,6 +1,8 @@
 from rest_framework.test import APITestCase
 from user.models import SoftdeskUser
 from rest_framework_simplejwt.tokens import AccessToken
+from datetime import timedelta
+
 
 PASSWORD = "password"
 
@@ -229,6 +231,37 @@ class TestAuthentification(APITestCase):
 
         self.assertEqual(response.status_code, 401)
 
-    # TODO: test_refresh_access_token()
+    def test_token_expiration(self):
+
+        expired_token = AccessToken.for_user(self.user)
+        expired_token.set_exp(lifetime=-timedelta(hours=1))
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {expired_token}')
+        response = self.client.get("/users/")
+
+        self.assertEqual(response.status_code, 401, response.json())
+        self.assertEqual(response.json()['detail'], 'Given token not valid for any token type')
+
     def test_refresh_access_token(self):
-        pass
+
+        # get a first token
+        response = self.client.post("/api/token/", data={
+            "username": self.user.username,
+            "password": PASSWORD,
+        })
+
+        access_token = response.json()['access']
+        refresh_token = response.json()['refresh']
+
+        response = self.client.post(
+            path="/api/token/refresh/",
+            headers={
+                'Authorization': f'Bearer {access_token}',
+            },
+            data={
+                "refresh": refresh_token
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue("access" in response.json())
