@@ -228,3 +228,7 @@ class TestAuthentification(APITestCase):
         })
 
         self.assertEqual(response.status_code, 401)
+
+    # TODO: test_refresh_access_token()
+    def test_refresh_access_token(self):
+        pass
