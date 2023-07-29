@@ -590,7 +590,6 @@ class TestComment(APITestCase):
         self.assertEqual(len(response.json()['results']), PAGE_SIZE)
 
     # CREATE
-
     def test_create_minimal_comment(self):
 
         self.authenticate(self.project_author)
@@ -678,7 +677,6 @@ class TestComment(APITestCase):
         self.assertEqual(response.status_code, 403, response.json())
 
     # RETREIVE
-
     def test_get_comment_from_project_author(self):
 
         self.authenticate(self.project_author)
@@ -728,7 +726,6 @@ class TestComment(APITestCase):
         self.assertEqual(response.status_code, 404)
 
     # UPDATE
-
     def test_update_comment(self):
 
         self.authenticate(self.project_author)
@@ -810,7 +807,6 @@ class TestComment(APITestCase):
         self.assertEqual(updated_comment.author.pk, self.project_author.pk)
 
     # DELETE
-
     def test_delete_comment_from_author(self):
 
         self.authenticate(self.project_author)
@@ -841,8 +837,3 @@ class TestComment(APITestCase):
         self.assertEqual(response.status_code, 404)
 
         self.assertTrue(Comment.objects.filter(pk=1).exists())
-
-
-# TODO: TestIssuesIntegration
-class TestIssuesIntegration(APITestCase):
-    pass

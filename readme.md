@@ -20,43 +20,39 @@ Une base de donnée ```db.sqlite3``` est incluse au dépôt et contient des donn
 * un ensemble d'issues
 * un ensemble de comments
 
+# TODO: mise à jour avec pipenv
 ## Configuration de l'environnement virtuel :
 
-Le programme utilise plusieurs librairies externes, et modules de Python, qui sont repertoriés dans le fichier ```requirements.txt```
+Le programme utilise plusieurs librairies externes, et modules de Python, qui sont repertoriés dans les fichiers ```Pipfile``` et ``Pipfile.lock``
 
 Pour configuer l'environnement, commencez par ouvrir un terminal à la racine du projet, et suivez les étapes suivantes :
 
-1. Créez un environnement virtuel à partir de la commande suivante :
-```bash
-python -m venv env
-```
+1. installez pipenv sur votre environnement global :
+    ```bash
+    pip install pipenv
+    ```
 
-2. Activez l'environnement virtuel que vous venez de créer avec la commande suivante :
+2. Installez les packages spécifiés dans le projet :
 
-```bash
-env/Scripts/activate
-```
+    ```bash
+    pipenv install
+    ```
 
-3. Installez les packages python spécifiés dans le fichier ```requirement.txt``` :
-
-```bash
-pip install -r requirement.txt
-```
 ## Lancement du serveur
 
-1. Activez l'environnement virtuel en vous référant à la section précédante.
+1. Installez l'environnement virtuel en vous référant à la section précédante.
 
 2. Ouvrez un terminal à la racine du projet, et entrez la commande suivante :
 
-```bash
-python ./manage.py runserver
-```
+    ```bash
+    pipenv run python ./manage.py runserver
+    ```
 
 ## Authentification
 
 L'authentification à l'API se fait au travers de [djangorestframework-simplejwt](https://django-rest-framework-simplejwt.readthedocs.io/en/latest/).
 
-L'obtention d'un access token se fait avec la requete suivante :
+L'obtention d'un access token se fait avec la requete suivante, et devra être fourni dans les en-têtes de chaque requêtes :
 
 ```
 POST http://127.0.0.1:8000/api/token/
@@ -83,12 +79,12 @@ l'ensemble des tests disponible peuvent être lancés en suivant les étapes sui
 
 2. Ouvrez un terminal à la racine du projet, et entrez la commande suivante :
 
-```bash
-python ./manage.py test
-```
+    ```bash
+    pipenv run python ./manage.py test
+    ```
 
 ## Generation de données aleatoires
 
-```
-python -W ignore ./manage.py runscript dummy_data
-```
+    ```
+    pipenv run python ./manage.py runscript dummy_data
+    ```

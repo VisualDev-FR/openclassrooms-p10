@@ -45,10 +45,6 @@ class IssueSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
 
-    # TODO: CommentSerializer.to_representation()
-    def to_representation(self, instance):
-        return super().to_representation(instance)
-
     def validate_issue(self, value):
         if self.instance:
             raise serializers.ValidationError("the issue of a comment cant be modified")

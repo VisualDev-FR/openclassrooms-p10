@@ -79,7 +79,7 @@ class TestSoftdeskUser(APITestCase):
         })
         self.assertEqual(response.status_code, 400)
 
-    def test_create_user(self):
+    def test_create_user_unauthorized(self):
 
         # create user from non authenticated user
         response = self.client.post("/users/", data={
