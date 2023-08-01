@@ -20,7 +20,6 @@ Une base de donnée ```db.sqlite3``` est incluse au dépôt et contient des donn
 * un ensemble d'issues
 * un ensemble de comments
 
-# TODO: mise à jour avec pipenv
 ## Configuration de l'environnement virtuel :
 
 Le programme utilise plusieurs librairies externes, et modules de Python, qui sont repertoriés dans les fichiers ```Pipfile``` et ``Pipfile.lock``
